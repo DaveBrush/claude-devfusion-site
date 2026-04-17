@@ -1,97 +1,54 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="orange">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Devfusion – Software Solutions, Midlands</title>
-<script>
-  /* Apply saved theme before first paint to prevent flash */
-  (function(){ var t=localStorage.getItem('df-theme'); if(t) document.documentElement.setAttribute('data-theme',t); })();
-</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Devfusion – Bespoke Software, Midlands</title>
 <style>
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('fonts/inter-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('fonts/inter-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* ── BLUE THEME (default) ── */
   :root {
     --ink: #0f1117;
     --ink-mid: #3a3d47;
     --ink-muted: #7a7f8e;
-    --surface: #ffffff;
-    --surface-2: #f6f6f4;
-    --surface-3: #eeecea;
-    --accent: #1a3cff;
-    --accent-mid: #d4dcff;
-    --accent-dark: #0a1f99;
-    --accent-hover: #2b4fff;
-    --warm: #e8440a;
-    --warm-light: #fde8e0;
-    --border: rgba(15,17,23,0.1);
-    --radius: 4px;
-    --radius-lg: 12px;
-    --max: 1160px;
-    --font-display: 'DM Serif Display', Georgia, serif;
-    --font-body: 'DM Sans', system-ui, sans-serif;
-    /* theme tokens */
-    --btn-radius: 100px;
-    --nav-cta-bg: var(--ink);
-    --nav-cta-hover: var(--accent);
-    --service-hover: #f0f2ff;
-    --projects-bg: var(--warm-light);
-    --projects-grid: repeat(auto-fit, minmax(300px, 1fr));
-    --hero-bg: #0f1117;
-    --hero-text: #fff;
-    --hero-sub: rgba(255,255,255,0.6);
-    --hero-glow-opacity: 1;
-    --hero-h1-size: clamp(3rem, 7vw, 5.5rem);
-    --hero-h1-tracking: normal;
-    --hero-stat-color: #fff;
-    --hero-stat-label: rgba(255,255,255,0.45);
-    --hero-stat-accent: var(--accent-mid);
-    --section-title-size: clamp(2rem, 4vw, 3rem);
-    --section-title-tracking: normal;
-    --expertise-item-hover-shadow: 0 0 0 3px var(--accent-mid);
-  }
-
-  /* ── ORANGE THEME ── */
-  [data-theme="orange"] {
-    --accent: #ff6600;
-    --accent-mid: #ffe8d6;
-    --accent-dark: #cc4400;
-    --accent-hover: #e55a00;
+    --surface: #fff;
     --surface-2: #f8f8f7;
     --surface-3: #f2f2f0;
-    --border: #e5e5e5;
-    --font-display: 'Inter', system-ui, sans-serif;
-    /* theme tokens */
-    --btn-radius: 6px;
-    --nav-cta-bg: #ff6600;
-    --nav-cta-hover: #e55a00;
-    --service-hover: #fff8f4;
-    --projects-bg: var(--surface);
-    --projects-grid: repeat(2, 1fr);
-    --hero-bg: #ffffff;
-    --hero-text: #0f1117;
-    --hero-sub: #3a3d47;
-    --hero-glow-opacity: 0;
-    --hero-h1-size: clamp(2.5rem, 5vw, 4rem);
-    --hero-h1-tracking: -0.03em;
-    --hero-stat-color: #0f1117;
-    --hero-stat-label: #7a7f8e;
-    --hero-stat-accent: #ff6600;
-    --section-title-size: clamp(1.75rem, 3vw, 2.5rem);
-    --section-title-tracking: -0.02em;
-    --expertise-item-hover-shadow: none;
+    --surface-dark: #0f1117;
+    --accent: #ff6600;
+    --accent-hover: #e55a00;
+    --accent-light: #fff3eb;
+    --border: #e8e8e6;
+    --radius: 6px;
+    --radius-lg: 10px;
+    --max: 1120px;
+    --font: 'Inter', system-ui, sans-serif;
   }
 
   html { scroll-behavior: smooth; }
-  body { font-family: var(--font-body); color: var(--ink); background: var(--surface); font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+  body { font-family: var(--font); color: var(--ink); background: var(--surface); font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
 
   /* ── NAV ── */
   nav {
     position: sticky; top: 0; z-index: 100;
-    background: rgba(255,255,255,0.93);
+    background: rgba(255,255,255,0.94);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     padding: 0 2rem;
@@ -99,358 +56,252 @@
   .nav-inner {
     max-width: var(--max); margin: 0 auto;
     display: flex; align-items: center; justify-content: space-between;
-    height: 68px; gap: 1.5rem;
+    height: 68px;
   }
-  .nav-logo { text-decoration: none; display: flex; align-items: center; flex-shrink: 0; }
+  .nav-logo { text-decoration: none; display: flex; align-items: center; }
   .nav-logo img { height: 36px; width: auto; display: block; }
   .nav-links { display: flex; gap: 2rem; list-style: none; }
-  .nav-links a {
-    color: var(--ink-mid); text-decoration: none;
-    font-size: 14px; font-weight: 500; letter-spacing: 0.01em;
-    transition: color 0.2s;
-  }
+  .nav-links a { color: var(--ink-mid); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.15s; }
   .nav-links a:hover { color: var(--ink); }
-  .nav-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
-
-  /* Theme toggle */
-  .theme-toggle {
-    display: flex; align-items: center; gap: 2px;
-    background: var(--surface-2); border: 1px solid var(--border);
-    border-radius: 100px; padding: 3px; cursor: pointer;
-    font-family: var(--font-body); font-size: 12px; font-weight: 500;
-  }
-  .t-opt {
-    padding: 4px 11px; border-radius: 100px;
-    color: var(--ink-muted); transition: background 0.2s, color 0.2s;
-    white-space: nowrap; user-select: none;
-  }
-  .t-opt.active { background: var(--accent); color: #fff; }
-
   .nav-cta {
-    background: var(--nav-cta-bg); color: #fff;
-    padding: 8px 20px; border-radius: var(--btn-radius);
+    background: var(--accent); color: #fff;
+    padding: 9px 22px; border-radius: var(--radius);
     font-size: 14px; font-weight: 500; text-decoration: none;
-    transition: background 0.2s;
+    transition: background 0.15s;
   }
-  .nav-cta:hover { background: var(--nav-cta-hover); }
+  .nav-cta:hover { background: var(--accent-hover); }
 
   /* ── HERO ── */
   .hero {
-    background: var(--hero-bg);
-    padding: 7rem 2rem 5rem;
-    position: relative; overflow: hidden;
-    border-bottom: 1px solid transparent;
-    transition: background 0.3s;
-  }
-  [data-theme="orange"] .hero {
     padding: 6rem 2rem 5rem;
-    border-bottom-color: var(--border);
+    border-bottom: 1px solid var(--border);
   }
-  .hero::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse 80% 60% at 70% 50%, #1a3cff22 0%, transparent 70%);
-    pointer-events: none;
-    opacity: var(--hero-glow-opacity);
-    transition: opacity 0.3s;
+  .hero-inner { max-width: var(--max); margin: 0 auto; }
+  .hero-label {
+    display: inline-block; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1.5rem;
   }
-  .hero-inner { max-width: var(--max); margin: 0 auto; position: relative; }
-  .hero-eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-    color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500;
-    padding: 5px 14px; border-radius: 100px; margin-bottom: 2rem;
-    letter-spacing: 0.04em; text-transform: uppercase;
-    transition: all 0.3s;
-  }
-  .hero-eyebrow::before { content: ''; width: 6px; height: 6px; background: #4cff88; border-radius: 50%; flex-shrink: 0; }
-  [data-theme="orange"] .hero-eyebrow {
-    background: none; border-color: transparent; padding: 0;
-    color: var(--accent); letter-spacing: 0.08em; margin-bottom: 1.5rem;
-    font-weight: 600; font-size: 12px;
-  }
-  [data-theme="orange"] .hero-eyebrow::before { display: none; }
-
   .hero h1 {
-    font-family: var(--font-display);
-    font-size: var(--hero-h1-size);
-    color: var(--hero-text); line-height: 1.05;
-    max-width: 900px; margin-bottom: 1.75rem;
-    letter-spacing: var(--hero-h1-tracking);
-    transition: color 0.3s, font-size 0.3s;
+    font-size: clamp(2.75rem, 5.5vw, 4.25rem);
+    font-weight: 600; line-height: 1.08; letter-spacing: -0.03em;
+    color: var(--ink); max-width: 860px; margin-bottom: 1.5rem;
   }
-  [data-theme="orange"] .hero h1 { line-height: 1.1; font-weight: 600; }
-  .hero h1 em { color: var(--accent-mid); font-style: italic; }
-  [data-theme="orange"] .hero h1 em { color: var(--accent); font-style: normal; font-weight: 600; }
+  .hero h1 em { color: var(--accent); font-style: normal; }
   .hero-sub {
-    font-size: 1.125rem; color: var(--hero-sub);
-    max-width: 540px; margin-bottom: 2.5rem; font-weight: 300;
-    line-height: 1.75; transition: color 0.3s;
+    font-size: 1.125rem; color: var(--ink-mid); font-weight: 300;
+    max-width: 520px; line-height: 1.75; margin-bottom: 2.5rem;
   }
-  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 4rem; }
   .btn-primary {
     background: var(--accent); color: #fff;
-    padding: 14px 28px; border-radius: var(--btn-radius);
+    padding: 13px 28px; border-radius: var(--radius);
     font-size: 15px; font-weight: 500; text-decoration: none;
-    transition: background 0.2s, transform 0.15s;
+    transition: background 0.15s;
   }
-  .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
-  [data-theme="orange"] .btn-primary:hover { transform: none; }
-  .btn-ghost {
-    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85);
-    border: 1px solid rgba(255,255,255,0.2);
-    padding: 14px 28px; border-radius: var(--btn-radius);
-    font-size: 15px; font-weight: 500; text-decoration: none;
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
-  }
-  .btn-ghost:hover { background: rgba(255,255,255,0.14); }
-  [data-theme="orange"] .btn-ghost {
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-outline {
     background: transparent; color: var(--ink);
-    border-color: var(--border);
+    border: 1.5px solid var(--border);
+    padding: 13px 28px; border-radius: var(--radius);
+    font-size: 15px; font-weight: 500; text-decoration: none;
+    transition: border-color 0.15s;
   }
-  [data-theme="orange"] .btn-ghost:hover { background: transparent; border-color: var(--ink-muted); }
+  .btn-outline:hover { border-color: var(--ink-muted); }
+  .hero-stats { display: flex; gap: 4rem; flex-wrap: wrap; }
+  .stat-num {
+    font-size: 2.5rem; font-weight: 600; letter-spacing: -0.04em;
+    color: var(--ink); line-height: 1;
+  }
+  .stat-num em { color: var(--accent); font-style: normal; }
+  .stat-label { font-size: 13px; color: var(--ink-muted); margin-top: 6px; }
 
-  .hero-stats {
-    display: flex; gap: 3rem; margin-top: 4rem; flex-wrap: wrap;
-    border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2.5rem;
-    transition: border-color 0.3s;
-  }
-  [data-theme="orange"] .hero-stats { border-top-color: var(--border); margin-top: 3rem; }
-  .hero-stat-num {
-    font-family: var(--font-display);
-    font-size: 2.5rem; color: var(--hero-stat-color); line-height: 1;
-    letter-spacing: var(--hero-h1-tracking);
-    transition: color 0.3s;
-  }
-  [data-theme="orange"] .hero-stat-num { font-size: 2.25rem; font-weight: 600; }
-  .hero-stat-num .accent { color: var(--hero-stat-accent); }
-  .hero-stat-label { font-size: 13px; color: var(--hero-stat-label); margin-top: 4px; transition: color 0.3s; }
-
-  /* ── SECTION STRUCTURE ── */
-  section { padding: 6rem 2rem; }
-  [data-theme="orange"] section { padding: 5rem 2rem; }
-  .section-inner { max-width: var(--max); margin: 0 auto; }
+  /* ── SECTION BASE ── */
+  section { padding: 5.5rem 2rem; }
+  .inner { max-width: var(--max); margin: 0 auto; }
   .section-label {
-    font-size: 12px; font-weight: 500; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem;
   }
-  [data-theme="orange"] .section-label { font-weight: 600; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
   .section-title {
-    font-family: var(--font-display);
-    font-size: var(--section-title-size);
-    letter-spacing: var(--section-title-tracking);
-    color: var(--ink); line-height: 1.15; margin-bottom: 1.25rem;
+    font-size: clamp(1.875rem, 3.5vw, 2.75rem);
+    font-weight: 600; letter-spacing: -0.025em;
+    color: var(--ink); line-height: 1.15; margin-bottom: 1rem;
   }
-  [data-theme="orange"] .section-title { line-height: 1.2; margin-bottom: 1rem; font-weight: 600; }
-  .section-intro {
-    font-size: 1.0625rem; color: var(--ink-mid); max-width: 560px;
-    line-height: 1.75; font-weight: 300;
-  }
-  [data-theme="orange"] .section-intro { font-size: 1rem; }
+  .section-intro { font-size: 1.0625rem; color: var(--ink-mid); font-weight: 300; max-width: 540px; line-height: 1.75; }
 
   /* ── SERVICES ── */
   .services { background: var(--surface-2); }
   .services-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5px; margin-top: 3.5rem;
-    border: 1.5px solid var(--border); border-radius: var(--radius-lg);
-    overflow: hidden;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;
+    margin-top: 3rem;
   }
-  [data-theme="orange"] .services-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px; border-radius: 8px;
-  }
-  .service-card { background: var(--surface); padding: 2.5rem 2rem; transition: background 0.2s; }
-  .service-card:hover { background: var(--service-hover); }
-  [data-theme="orange"] .service-card { padding: 2.25rem 2rem; }
-  .service-icon {
-    width: 48px; height: 48px; background: var(--accent-mid);
-    border-radius: var(--radius); margin-bottom: 1.5rem;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.3s;
-  }
-  .service-icon svg { width: 22px; height: 22px; stroke: var(--accent-dark); stroke-width: 1.8; fill: none; }
-  [data-theme="orange"] .service-icon {
-    background: none; width: 40px; height: 40px; margin-bottom: 1.25rem;
-    color: var(--accent);
-  }
-  [data-theme="orange"] .service-icon svg { width: 40px; height: 40px; stroke: currentColor; stroke-width: 1.5; }
-  .service-card h3 { font-size: 1.125rem; font-weight: 500; margin-bottom: 0.75rem; }
-  [data-theme="orange"] .service-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.6rem; }
-  .service-card p { font-size: 0.9375rem; color: var(--ink-mid); line-height: 1.7; }
-  [data-theme="orange"] .service-card p { font-size: 0.9rem; }
+  .service-card { background: var(--surface); padding: 2.25rem 2rem; transition: background 0.15s; }
+  .service-card:hover { background: #fff8f4; }
+  .service-icon { width: 40px; height: 40px; color: var(--accent); margin-bottom: 1.25rem; }
+  .service-icon svg { width: 40px; height: 40px; stroke: currentColor; stroke-width: 1.5; fill: none; }
+  .service-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.6rem; }
+  .service-card p { font-size: 0.9rem; color: var(--ink-mid); line-height: 1.7; }
 
   /* ── EXPERTISE ── */
-  .expertise { background: var(--surface); }
   .expertise-layout {
     display: grid; grid-template-columns: 1fr 1fr;
-    gap: 5rem; align-items: center; margin-top: 3rem;
+    gap: 5rem; align-items: start; margin-top: 3rem;
   }
-  [data-theme="orange"] .expertise-layout { align-items: start; }
-  .expertise-list { list-style: none; display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }
-  [data-theme="orange"] .expertise-list { gap: 0; margin-top: 2rem; }
-  .expertise-item {
-    display: flex; gap: 1rem; align-items: flex-start;
-    padding: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius-lg);
-    transition: border-color 0.2s, box-shadow 0.2s;
+  .process-steps { display: flex; flex-direction: column; }
+  .step {
+    display: flex; gap: 1.5rem; align-items: flex-start;
+    padding: 1.75rem 0; border-bottom: 1px solid var(--border);
   }
-  .expertise-item:hover { border-color: var(--accent); box-shadow: var(--expertise-item-hover-shadow); }
-  [data-theme="orange"] .expertise-item {
-    padding: 1.75rem 0; border: none; border-bottom: 1px solid var(--border); border-radius: 0;
-  }
-  [data-theme="orange"] .expertise-list li:first-child .expertise-item { padding-top: 0; }
-  [data-theme="orange"] .expertise-item:hover { border-color: var(--border); box-shadow: none; }
-  .expertise-num {
-    font-family: var(--font-display); font-size: 1.5rem; color: var(--accent-mid);
-    line-height: 1; min-width: 32px; font-style: italic; transition: color 0.3s;
-  }
-  [data-theme="orange"] .expertise-num {
-    font-family: var(--font-body); font-size: 13px; font-weight: 600;
-    color: var(--accent); font-style: normal; letter-spacing: 0.04em; margin-top: 2px;
-  }
-  .expertise-item h4 { font-size: 0.9375rem; font-weight: 500; margin-bottom: 4px; }
-  [data-theme="orange"] .expertise-item h4 { font-weight: 600; }
-  .expertise-item p { font-size: 0.875rem; color: var(--ink-muted); line-height: 1.6; }
-  [data-theme="orange"] .expertise-item p { color: var(--ink-mid); }
-  .expertise-panel {
-    background: var(--ink); border-radius: var(--radius-lg); padding: 3rem 2.5rem; color: #fff;
-  }
-  [data-theme="orange"] .expertise-panel { border-radius: 8px; padding: 2.5rem; }
-  .expertise-panel h3 { font-family: var(--font-display); font-size: 1.75rem; margin-bottom: 1.5rem; color: #fff; }
-  [data-theme="orange"] .expertise-panel h3 { font-family: var(--font-body); font-size: 1.125rem; font-weight: 600; margin-bottom: 1.25rem; }
-  .tech-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-  [data-theme="orange"] .tech-tags { gap: 7px; margin-bottom: 2rem; }
+  .step:first-child { padding-top: 0; }
+  .step-num { font-size: 12px; font-weight: 600; color: var(--accent); letter-spacing: 0.06em; min-width: 28px; margin-top: 3px; }
+  .step h4 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 4px; }
+  .step p { font-size: 0.875rem; color: var(--ink-mid); line-height: 1.65; }
+  .tech-panel { background: var(--surface-dark); border-radius: var(--radius-lg); padding: 2.5rem; color: #fff; }
+  .tech-panel h3 { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 1.25rem; }
+  .tech-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 2rem; }
   .tech-tag {
-    font-size: 13px; font-weight: 400;
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-    color: rgba(255,255,255,0.75); padding: 5px 12px; border-radius: 100px;
+    font-size: 12px; font-weight: 500;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.13);
+    color: rgba(255,255,255,0.7); padding: 4px 11px; border-radius: 4px;
   }
-  [data-theme="orange"] .tech-tag { font-size: 12px; font-weight: 500; border-radius: 4px; padding: 4px 11px; }
-  .specialisms { margin-top: 2.5rem; }
-  [data-theme="orange"] .specialisms { margin-top: 0; }
-  .specialism { border-top: 1px solid rgba(255,255,255,0.1); padding: 1.25rem 0; }
-  .specialism:last-child { border-bottom: 1px solid rgba(255,255,255,0.1); }
-  [data-theme="orange"] .specialism {
-    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
-    border-bottom: 1px solid rgba(255,255,255,0.1); padding: 1rem 0;
+  .specialism-list { border-top: 1px solid rgba(255,255,255,0.1); }
+  .specialism {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 1rem; padding: 1rem 0; border-bottom: 1px solid rgba(255,255,255,0.1);
   }
-  [data-theme="orange"] .specialism:last-child { border-bottom-color: rgba(255,255,255,0.1); }
-  .specialism-title { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-  [data-theme="orange"] .specialism-title { font-size: 12px; letter-spacing: 0.05em; margin-bottom: 0; white-space: nowrap; }
-  .specialism-val { font-size: 0.9375rem; color: rgba(255,255,255,0.85); }
-  [data-theme="orange"] .specialism-val { font-size: 0.875rem; text-align: right; }
+  .specialism-label { font-size: 12px; color: rgba(255,255,255,0.45); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+  .specialism-val { font-size: 0.875rem; color: rgba(255,255,255,0.8); text-align: right; }
 
   /* ── PROJECTS ── */
-  .projects { background: var(--projects-bg); transition: background 0.3s; }
-  .projects-intro { max-width: var(--max); margin: 0 auto; }
-  .projects-grid { display: grid; grid-template-columns: var(--projects-grid); gap: 1.5rem; margin-top: 3rem; }
+  .projects { background: var(--surface); }
+  .projects-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem; margin-top: 3rem;
+  }
   .project-card {
-    background: var(--surface); padding: 2rem;
-    border-radius: var(--radius-lg); border: 1px solid var(--border);
-    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    padding: 2rem; border: 1px solid var(--border); border-radius: var(--radius-lg);
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
-  .project-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
-  [data-theme="orange"] .project-card:hover {
-    transform: none; border-color: var(--accent);
-    box-shadow: 0 4px 20px rgba(255,102,0,0.08);
+  .project-card:hover { border-color: var(--accent); box-shadow: 0 4px 24px rgba(255,102,0,0.09); }
+  .project-sector {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--accent); margin-bottom: 0.75rem;
   }
-  .project-tag {
-    display: inline-block; font-size: 11px; font-weight: 500;
-    text-transform: uppercase; letter-spacing: 0.06em;
-    background: var(--warm-light); color: var(--warm);
-    border: 1px solid rgba(232,68,10,0.2);
-    padding: 3px 10px; border-radius: 100px; margin-bottom: 1rem;
-    transition: all 0.3s;
-  }
-  [data-theme="orange"] .project-tag {
-    background: none; border: none; padding: 0; border-radius: 0;
-    color: var(--accent); letter-spacing: 0.07em; margin-bottom: 0.75rem; font-weight: 600;
-  }
-  .project-card h3 { font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 0.75rem; }
-  [data-theme="orange"] .project-card h3 { font-family: var(--font-body); font-size: 1.0625rem; font-weight: 600; margin-bottom: 0.6rem; letter-spacing: -0.01em; }
+  .project-card h3 { font-size: 1.0625rem; font-weight: 600; margin-bottom: 0.6rem; letter-spacing: -0.01em; }
   .project-card p { font-size: 0.9rem; color: var(--ink-mid); line-height: 1.7; }
 
   /* ── WHY US ── */
-  .why { background: var(--surface-3); }
-  .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; margin-top: 3rem; }
-  .why-card h4 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
-  [data-theme="orange"] .why-card h4 { font-weight: 600; }
-  .why-card p { font-size: 0.9rem; color: var(--ink-mid); line-height: 1.65; }
-  .why-num { font-family: var(--font-display); font-size: 3rem; color: var(--accent-mid); line-height: 1; margin-bottom: 1rem; font-style: italic; }
-  [data-theme="orange"] .why-num { font-family: var(--font-body); font-size: 2.5rem; font-weight: 600; font-style: normal; color: var(--accent); }
+  .why { background: var(--surface-2); }
+  .why-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.5rem; margin-top: 3rem; }
+  .why-num { font-size: 2.75rem; font-weight: 600; letter-spacing: -0.04em; color: var(--accent); line-height: 1; margin-bottom: 1rem; }
+  .why-card h4 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .why-card p { font-size: 0.875rem; color: var(--ink-mid); line-height: 1.65; }
 
   /* ── ABOUT ── */
   .about { background: var(--surface); }
-  [data-theme="orange"] .about { background: var(--surface-2); }
-  .about-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
-  [data-theme="orange"] .about-layout { align-items: start; }
-  .about-content h2 { font-family: var(--font-display); font-size: clamp(2rem, 3.5vw, 2.75rem); margin-bottom: 1.5rem; }
-  [data-theme="orange"] .about-content h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); font-weight: 600; letter-spacing: -0.02em; }
-  .about-content p { font-size: 1rem; color: var(--ink-mid); line-height: 1.8; margin-bottom: 1rem; font-weight: 300; }
-  .about-aside {
-    background: var(--ink); border-radius: var(--radius-lg); padding: 2.5rem; color: #fff;
-  }
-  [data-theme="orange"] .about-aside { border-radius: 8px; }
-  .about-aside h3 { font-family: var(--font-display); font-size: 1.5rem; color: #fff; margin-bottom: 1.5rem; }
-  [data-theme="orange"] .about-aside h3 { font-family: var(--font-body); font-size: 1rem; font-weight: 600; }
-  .detail-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.9rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); gap: 1rem; }
+  .about-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; }
+  .about-content .section-label { margin-bottom: 0.75rem; }
+  .about-content h2 { font-size: clamp(1.875rem, 3vw, 2.5rem); font-weight: 600; letter-spacing: -0.025em; margin-bottom: 1.5rem; }
+  .about-content p { font-size: 1rem; color: var(--ink-mid); line-height: 1.8; font-weight: 300; margin-bottom: 1rem; }
+  .about-aside { background: var(--surface-dark); border-radius: var(--radius-lg); padding: 2.5rem; color: #fff; }
+  .about-aside h3 { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 1.5rem; }
+  .detail-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; padding: 0.875rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
   .detail-row:last-child { border-bottom: none; }
-  .detail-label { font-size: 13px; color: rgba(255,255,255,0.45); white-space: nowrap; }
-  [data-theme="orange"] .detail-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; padding: 0.875rem 0; padding-right: 0; }
-  .detail-val { font-size: 14px; color: rgba(255,255,255,0.85); text-align: right; }
-  [data-theme="orange"] .detail-val { padding: 0.875rem 0; line-height: 1.5; }
-  [data-theme="orange"] .detail-val a { color: rgba(255,255,255,0.6); text-decoration: none; }
-  [data-theme="orange"] .detail-val a:hover { color: var(--accent); }
+  .detail-label { font-size: 12px; color: rgba(255,255,255,0.4); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
+  .detail-val { font-size: 14px; color: rgba(255,255,255,0.85); text-align: right; line-height: 1.5; }
+  .detail-val a { color: rgba(255,255,255,0.6); text-decoration: none; transition: color 0.15s; }
+  .detail-val a:hover { color: var(--accent); }
 
   /* ── CONTACT ── */
-  .contact { background: var(--ink); padding: 7rem 2rem; }
-  [data-theme="orange"] .contact { padding: 6rem 2rem; }
+  .contact { background: var(--surface-dark); padding: 6rem 2rem; }
   .contact-inner { max-width: 640px; margin: 0 auto; text-align: center; }
-  .contact h2 { font-family: var(--font-display); font-size: clamp(2.25rem, 5vw, 3.5rem); color: #fff; line-height: 1.1; margin-bottom: 1.25rem; }
-  [data-theme="orange"] .contact h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 1rem; }
-  .contact h2 em { color: var(--accent-mid); font-style: italic; }
-  [data-theme="orange"] .contact h2 em { color: var(--accent); font-style: normal; }
-  .contact p { font-size: 1.0625rem; color: rgba(255,255,255,0.55); font-weight: 300; margin-bottom: 2.5rem; line-height: 1.7; }
-  .contact-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; }
-  .contact-link {
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-    color: rgba(255,255,255,0.85);
-    padding: 12px 22px; border-radius: var(--btn-radius);
-    text-decoration: none; font-size: 15px; font-weight: 500;
-    transition: background 0.2s, opacity 0.15s;
+  .contact h2 {
+    font-size: clamp(2rem, 4vw, 3rem); font-weight: 600;
+    letter-spacing: -0.03em; color: #fff; line-height: 1.12; margin-bottom: 1rem;
   }
-  .contact-link:hover { background: rgba(255,255,255,0.15); }
-  .contact-link.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .contact-link.primary:hover { background: var(--accent-hover); }
-  [data-theme="orange"] .contact-link.secondary { border-radius: var(--btn-radius); }
-  [data-theme="orange"] .contact-link:hover { opacity: 0.85; background: rgba(255,255,255,0.08); }
+  .contact h2 em { color: var(--accent); font-style: normal; }
+  .contact > .contact-inner > p {
+    font-size: 1.0625rem; color: rgba(255,255,255,0.5);
+    font-weight: 300; margin-bottom: 2.5rem; line-height: 1.7;
+  }
+
+  /* Contact form */
+  .contact-form { text-align: left; margin-bottom: 2rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.55); }
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+    color: #fff; padding: 11px 14px; border-radius: var(--radius);
+    font-family: var(--font); font-size: 15px; font-weight: 400;
+    transition: border-color 0.15s, background 0.15s;
+    width: 100%;
+  }
+  .form-group input::placeholder,
+  .form-group textarea::placeholder { color: rgba(255,255,255,0.25); }
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    outline: none; border-color: var(--accent); background: rgba(255,255,255,0.1);
+  }
+  .form-group select option { background: #1a1a1a; color: #fff; }
+  .form-group textarea { resize: vertical; min-height: 120px; }
+  .form-submit {
+    width: 100%; background: var(--accent); color: #fff;
+    padding: 13px; border-radius: var(--radius); border: none;
+    font-family: var(--font); font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s; margin-top: 0.5rem;
+  }
+  .form-submit:hover { background: var(--accent-hover); }
+  .contact-alt {
+    display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
+    padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .contact-alt a { color: rgba(255,255,255,0.45); text-decoration: none; font-size: 14px; transition: color 0.15s; }
+  .contact-alt a:hover { color: rgba(255,255,255,0.8); }
 
   /* ── FOOTER ── */
-  footer { background: #080a10; color: rgba(255,255,255,0.35); padding: 2rem; text-align: center; font-size: 13px; }
-  footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+  footer { background: #080a10; color: rgba(255,255,255,0.3); padding: 2rem; text-align: center; font-size: 13px; }
+  footer a { color: rgba(255,255,255,0.45); text-decoration: none; }
   footer a:hover { color: rgba(255,255,255,0.7); }
 
+  /* ── SCROLL ANIMATIONS ── */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+  .fade-up.is-visible { opacity: 1; transform: none; }
+  .fade-up.delay-1 { transition-delay: 0.1s; }
+  .fade-up.delay-2 { transition-delay: 0.2s; }
+  .fade-up.delay-3 { transition-delay: 0.3s; }
+  .fade-up.delay-4 { transition-delay: 0.4s; }
+  .fade-up.delay-5 { transition-delay: 0.5s; }
+
   /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .services-grid { grid-template-columns: repeat(2, 1fr); }
+    .why-grid { grid-template-columns: repeat(2, 1fr); }
+  }
   @media (max-width: 768px) {
     .expertise-layout, .about-layout { grid-template-columns: 1fr; gap: 2.5rem; }
-    [data-theme="orange"] .services-grid { grid-template-columns: 1fr; }
-    [data-theme="orange"] .projects-grid { grid-template-columns: 1fr; }
-    .nav-links { display: none; }
-    .nav-cta { display: none; }
-    .hero { padding: 5rem 1.25rem 4rem; }
+    .projects-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .nav-links, .nav-cta { display: none; }
     section { padding: 4rem 1.25rem; }
-    [data-theme="orange"] section { padding: 3.5rem 1.25rem; }
-    .t-opt { padding: 4px 8px; }
+    .hero { padding: 4rem 1.25rem 3.5rem; }
+    .why-grid { grid-template-columns: 1fr 1fr; }
   }
-
-  /* ── ANIMATIONS ── */
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  .hero h1, .hero-sub, .hero-actions { animation: fadeUp 0.7s ease both; }
-  .hero-sub { animation-delay: 0.1s; }
-  .hero-actions { animation-delay: 0.2s; }
-  .hero-stats { animation: fadeUp 0.7s 0.35s ease both; }
+  @media (max-width: 480px) {
+    .services-grid { grid-template-columns: 1fr; }
+    .why-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -465,40 +316,34 @@
       <li><a href="#projects">Projects</a></li>
       <li><a href="#about">About</a></li>
     </ul>
-    <div class="nav-right">
-      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Switch theme">
-        <span class="t-opt" data-opt="blue">Blue</span>
-        <span class="t-opt" data-opt="orange">Orange</span>
-      </button>
-      <a class="nav-cta" href="#contact">Get in touch</a>
-    </div>
+    <a class="nav-cta" href="#contact">Get in touch</a>
   </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero" id="home">
   <div class="hero-inner">
-    <div class="hero-eyebrow">Based in the Midlands · Serving clients globally</div>
-    <h1>Software that fits your <em>business</em>, not the other way around</h1>
-    <p class="hero-sub">
-      We design and build bespoke software solutions — back office systems, web applications, and mobile tools — that grow with your business.
+    <div class="hero-label fade-up">Based in the Midlands · Serving clients globally</div>
+    <h1 class="fade-up delay-1">Software built around your <em>business</em>,<br>not the other way around</h1>
+    <p class="hero-sub fade-up delay-2">
+      We design and build bespoke software — back office systems, web applications, and mobile tools — that grow with you.
     </p>
-    <div class="hero-actions">
+    <div class="hero-actions fade-up delay-3">
       <a class="btn-primary" href="#contact">Start a conversation</a>
-      <a class="btn-ghost" href="#services">Our services</a>
+      <a class="btn-outline" href="#services">Our services</a>
     </div>
-    <div class="hero-stats">
+    <div class="hero-stats fade-up delay-4">
       <div>
-        <div class="hero-stat-num">30<span class="accent" style="font-size:0.6em">+</span></div>
-        <div class="hero-stat-label">Years of experience</div>
+        <div class="stat-num">30<em>+</em></div>
+        <div class="stat-label">Years of experience</div>
       </div>
       <div>
-        <div class="hero-stat-num">3</div>
-        <div class="hero-stat-label">Continents served</div>
+        <div class="stat-num">3</div>
+        <div class="stat-label">Continents served</div>
       </div>
       <div>
-        <div class="hero-stat-num">∞</div>
-        <div class="hero-stat-label">Spreadsheets eliminated</div>
+        <div class="stat-num">∞</div>
+        <div class="stat-label">Spreadsheets eliminated</div>
       </div>
     </div>
   </div>
@@ -506,13 +351,13 @@
 
 <!-- SERVICES -->
 <section class="services" id="services">
-  <div class="section-inner">
-    <div class="section-label">What we do</div>
-    <h2 class="section-title">End-to-end software services</h2>
-    <p class="section-intro">From initial consultancy through to deployment and long-term support — we handle the full lifecycle.</p>
+  <div class="inner">
+    <div class="section-label fade-up">What we do</div>
+    <h2 class="section-title fade-up delay-1">End-to-end software services</h2>
+    <p class="section-intro fade-up delay-2">From initial consultancy through to deployment and long-term support — we handle the full lifecycle.</p>
     <div class="services-grid">
 
-      <div class="service-card">
+      <div class="service-card fade-up">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg>
         </div>
@@ -520,44 +365,44 @@
         <p>Too many spreadsheets? We connect your systems to each other and to third-party platforms — Amazon, eBay, Google — so data flows without manual effort.</p>
       </div>
 
-      <div class="service-card">
+      <div class="service-card fade-up delay-1">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 20h8M12 18v2"/></svg>
         </div>
         <h3>Web applications</h3>
-        <p>Bespoke portals, intranets, and extranets built for your users. Secure, scalable, and simple to use — whether that's a handful of employees or hundreds of thousands of products flowing into supermarkets daily.</p>
+        <p>Bespoke portals, intranets, and extranets built for your users. Secure, scalable, and simple to use — whether for a handful of employees or hundreds of thousands of daily product lines.</p>
       </div>
 
-      <div class="service-card">
+      <div class="service-card fade-up delay-2">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><circle cx="12" cy="18" r="1"/></svg>
         </div>
         <h3>Mobile</h3>
-        <p>Data on the move. Multi-platform mobile applications tailored to your audience — employees, business partners, or end customers — using modern cross-platform tools.</p>
+        <p>Multi-platform mobile applications tailored to your audience — employees, business partners, or end customers — using modern cross-platform tools.</p>
       </div>
 
-      <div class="service-card">
+      <div class="service-card fade-up delay-3">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v4c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 10v4c0 1.66 3.58 3 8 3s8-1.34 8-3v-4"/></svg>
         </div>
         <h3>Database design</h3>
-        <p>From single-user SQLite databases to SQL Server installations supporting thousands of concurrent users. We also handle data migration, integration, and cleansing.</p>
+        <p>From single-user SQLite to SQL Server installations supporting thousands of concurrent users. We handle data migration, integration, and cleansing.</p>
       </div>
 
-      <div class="service-card">
+      <div class="service-card fade-up delay-4">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         </div>
         <h3>Consultancy</h3>
-        <p>We gather requirements, produce detailed specifications, and guide your project through design, development, and testing. Fixed price or time and materials — whatever suits you.</p>
+        <p>Requirements gathering, detailed specifications, design, development, and testing. Fixed price or time and materials — whatever suits you.</p>
       </div>
 
-      <div class="service-card">
+      <div class="service-card fade-up delay-5">
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
         </div>
         <h3>Support &amp; evolution</h3>
-        <p>Software shouldn't be a snapshot. We offer ongoing support, documentation, user training, and iterative development so your solution grows with your business.</p>
+        <p>Ongoing support, documentation, user training, and iterative development so your solution keeps pace with your business.</p>
       </div>
 
     </div>
@@ -565,74 +410,69 @@
 </section>
 
 <!-- EXPERTISE -->
-<section class="expertise" id="expertise">
-  <div class="section-inner">
+<section id="expertise">
+  <div class="inner">
+    <div class="section-label fade-up">How we work</div>
+    <h2 class="section-title fade-up delay-1">A process built on trust</h2>
     <div class="expertise-layout">
-      <div>
-        <div class="section-label">How we work</div>
-        <h2 class="section-title">A process built on trust</h2>
-        <p class="section-intro">We work the way you need us to — collaboratively, transparently, and flexibly.</p>
-        <ul class="expertise-list">
-          <li class="expertise-item">
-            <div class="expertise-num">01</div>
-            <div>
-              <h4>Understand your problem</h4>
-              <p>We start with your business — not a solution. Detailed requirements gathering means nothing gets built twice.</p>
-            </div>
-          </li>
-          <li class="expertise-item">
-            <div class="expertise-num">02</div>
-            <div>
-              <h4>Spec, design, build</h4>
-              <p>A clear product specification before a single line of code. Then we design, develop, and test with you involved at every stage.</p>
-            </div>
-          </li>
-          <li class="expertise-item">
-            <div class="expertise-num">03</div>
-            <div>
-              <h4>Handover &amp; support</h4>
-              <p>Full documentation, user manuals, staff training, and a support contract that keeps things running smoothly.</p>
-            </div>
-          </li>
-        </ul>
-      </div>
-      <div>
-        <div class="expertise-panel">
-          <h3>Technologies we use</h3>
-          <div class="tech-tags">
-            <span class="tech-tag">.NET / C#</span>
-            <span class="tech-tag">Entity Framework</span>
-            <span class="tech-tag">LINQ</span>
-            <span class="tech-tag">MVC / Razor</span>
-            <span class="tech-tag">SQL Server</span>
-            <span class="tech-tag">SQLite</span>
-            <span class="tech-tag">MySQL</span>
-            <span class="tech-tag">Angular</span>
-            <span class="tech-tag">React</span>
-            <span class="tech-tag">Knockout.js</span>
-            <span class="tech-tag">jQuery Mobile</span>
-            <span class="tech-tag">Bootstrap</span>
-            <span class="tech-tag">Android (native)</span>
-            <span class="tech-tag">Cross-platform mobile</span>
-            <span class="tech-tag">Windows Services</span>
-            <span class="tech-tag">Web Services</span>
-            <span class="tech-tag">GDSN / GS1</span>
-            <span class="tech-tag">Amazon API</span>
-            <span class="tech-tag">eBay API</span>
+      <div class="process-steps fade-up delay-2">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div>
+            <h4>Understand your problem</h4>
+            <p>We start with your business — not a solution. Detailed requirements gathering means nothing gets built twice.</p>
           </div>
-          <div class="specialisms">
-            <div class="specialism">
-              <div class="specialism-title">Retail &amp; supply chain</div>
-              <div class="specialism-val">GDSN data pools, mixed mod, pallets, display shippers — we know the language</div>
-            </div>
-            <div class="specialism">
-              <div class="specialism-title">Affiliate commerce</div>
-              <div class="specialism-val">Deep integration with Amazon, eBay, and Google affiliate marketplaces</div>
-            </div>
-            <div class="specialism">
-              <div class="specialism-title">Engagement model</div>
-              <div class="specialism-val">Fixed price or time &amp; materials, remote or face-to-face</div>
-            </div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div>
+            <h4>Spec, design, build</h4>
+            <p>A clear product specification before a single line of code. Then design, develop, and test with you involved at every stage.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div>
+            <h4>Handover &amp; support</h4>
+            <p>Full documentation, user manuals, staff training, and a support contract that keeps things running smoothly.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tech-panel fade-up delay-3">
+        <h3>Technologies we use</h3>
+        <div class="tech-tags">
+          <span class="tech-tag">.NET / C#</span>
+          <span class="tech-tag">Entity Framework</span>
+          <span class="tech-tag">LINQ</span>
+          <span class="tech-tag">MVC / Razor</span>
+          <span class="tech-tag">SQL Server</span>
+          <span class="tech-tag">SQLite</span>
+          <span class="tech-tag">MySQL</span>
+          <span class="tech-tag">Angular</span>
+          <span class="tech-tag">React</span>
+          <span class="tech-tag">Knockout.js</span>
+          <span class="tech-tag">jQuery Mobile</span>
+          <span class="tech-tag">Bootstrap</span>
+          <span class="tech-tag">Android (native)</span>
+          <span class="tech-tag">Cross-platform mobile</span>
+          <span class="tech-tag">Windows Services</span>
+          <span class="tech-tag">Web Services</span>
+          <span class="tech-tag">GDSN / GS1</span>
+          <span class="tech-tag">Amazon API</span>
+          <span class="tech-tag">eBay API</span>
+        </div>
+        <div class="specialism-list">
+          <div class="specialism">
+            <span class="specialism-label">Retail &amp; supply chain</span>
+            <span class="specialism-val">GDSN data pools, mixed mod, pallets, display shippers</span>
+          </div>
+          <div class="specialism">
+            <span class="specialism-label">Affiliate commerce</span>
+            <span class="specialism-val">Amazon, eBay, and Google integrations</span>
+          </div>
+          <div class="specialism">
+            <span class="specialism-label">Engagement model</span>
+            <span class="specialism-val">Fixed price or time &amp; materials</span>
           </div>
         </div>
       </div>
@@ -642,32 +482,32 @@
 
 <!-- PROJECTS -->
 <section class="projects" id="projects">
-  <div class="projects-intro">
-    <div class="section-label">Track record</div>
-    <h2 class="section-title">Projects that made a difference</h2>
-    <p class="section-intro">We've shipped software that matters — in healthcare, retail, and beyond.</p>
+  <div class="inner">
+    <div class="section-label fade-up">Track record</div>
+    <h2 class="section-title fade-up delay-1">Projects that made a difference</h2>
+    <p class="section-intro fade-up delay-2">We've shipped software that matters — in healthcare, retail, and beyond.</p>
     <div class="projects-grid">
 
-      <div class="project-card">
-        <span class="project-tag">Healthcare</span>
+      <div class="project-card fade-up">
+        <div class="project-sector">Healthcare</div>
         <h3>Early cancer detection platform</h3>
         <p>A web application built to help clinicians identify early warning signs. Developed with performance and regulatory sensitivity at its core.</p>
       </div>
 
-      <div class="project-card">
-        <span class="project-tag">Retail supply chain</span>
+      <div class="project-card fade-up delay-1">
+        <div class="project-sector">Retail supply chain</div>
         <h3>GDSN-certified data pool</h3>
         <p>Part of the team that designed and built a fully GDSN-certified data pool in just 3 months. We continue to help suppliers and retailers connect to the world of global data sync.</p>
       </div>
 
-      <div class="project-card">
-        <span class="project-tag">FMCG / Logistics</span>
+      <div class="project-card fade-up delay-2">
+        <div class="project-sector">FMCG / Logistics</div>
         <h3>Supermarket product pipeline</h3>
-        <p>Ensuring over 250,000 product lines reach supermarket shelves day after day — a real-time system handling complex fulfilment logic at scale.</p>
+        <p>Ensuring over 250,000 product lines reach supermarket shelves day after day — real-time fulfilment logic at scale.</p>
       </div>
 
-      <div class="project-card">
-        <span class="project-tag">Research</span>
+      <div class="project-card fade-up delay-3">
+        <div class="project-sector">Research</div>
         <h3>Online survey platform</h3>
         <p>A purpose-built survey tool tailored to a client's specific research methodology — far beyond what off-the-shelf solutions could offer.</p>
       </div>
@@ -678,29 +518,29 @@
 
 <!-- WHY US -->
 <section class="why">
-  <div class="section-inner">
-    <div class="section-label">Why Devfusion</div>
-    <h2 class="section-title">What sets us apart</h2>
+  <div class="inner">
+    <div class="section-label fade-up">Why Devfusion</div>
+    <h2 class="section-title fade-up delay-1">What sets us apart</h2>
     <div class="why-grid">
-      <div class="why-card">
-        <div class="why-num">30<sup style="font-size:0.45em;vertical-align:super">+</sup></div>
+      <div class="why-card fade-up">
+        <div class="why-num">30+</div>
         <h4>Years of delivery</h4>
         <p>Nearly three decades of shipped projects across sectors. We've been around long enough to know what works.</p>
       </div>
-      <div class="why-card">
+      <div class="why-card fade-up delay-1">
         <div class="why-num">✓</div>
         <h4>On time, on budget</h4>
         <p>We're confident enough to say it plainly. A clear spec at the start means no surprises at the end.</p>
       </div>
-      <div class="why-card">
-        <div class="why-num">🌍</div>
-        <h4>Global reach, local feel</h4>
-        <p>Clients across the UK, Europe, and North America. We're comfortable remote or face-to-face — whatever the project demands.</p>
+      <div class="why-card fade-up delay-2">
+        <div class="why-num">3</div>
+        <h4>Continents served</h4>
+        <p>Clients across the UK, Europe, and North America. Comfortable remote or face-to-face — whatever the project demands.</p>
       </div>
-      <div class="why-card">
+      <div class="why-card fade-up delay-3">
         <div class="why-num">∞</div>
         <h4>Software that evolves</h4>
-        <p>We build for the long term. Our solutions adapt as your business changes, eliminating the cost and friction of off-the-shelf tools.</p>
+        <p>We build for the long term. Our solutions adapt as your business changes, cutting the cost and friction of off-the-shelf tools.</p>
       </div>
     </div>
   </div>
@@ -708,16 +548,16 @@
 
 <!-- ABOUT -->
 <section class="about" id="about">
-  <div class="section-inner">
+  <div class="inner">
     <div class="about-layout">
       <div class="about-content">
-        <div class="section-label">About us</div>
-        <h2>Based in Evesham.<br>Built for the world.</h2>
-        <p>Devfusion is a software development consultancy based in Offenham, Worcestershire — right in the heart of the Midlands. We're a small, experienced team with a global outlook, serving clients across the UK, Europe, and North America for nearly three decades.</p>
-        <p>We might be local, but we're no strangers to working remotely, travelling to clients, or getting on a call at short notice. We work the way you need us to.</p>
-        <p>What we won't do is build software that becomes a burden. Everything we ship is designed to make your business more productive, not to create a new dependency.</p>
+        <div class="section-label fade-up">About us</div>
+        <h2 class="fade-up delay-1">Based in Evesham.<br>Built for the world.</h2>
+        <p class="fade-up delay-2">Devfusion is a software development consultancy based in Offenham, Worcestershire — right in the heart of the Midlands. We're a small, experienced team with a global outlook, serving clients across the UK, Europe, and North America for nearly three decades.</p>
+        <p class="fade-up delay-3">We might be local, but we're no strangers to working remotely, travelling to clients, or getting on a call at short notice. We work the way you need us to.</p>
+        <p class="fade-up delay-4">What we won't do is build software that becomes a burden. Everything we ship is designed to make your business more productive, not to create a new dependency.</p>
       </div>
-      <div class="about-aside">
+      <div class="about-aside fade-up delay-2">
         <h3>The details</h3>
         <div class="detail-row">
           <span class="detail-label">Location</span>
@@ -728,16 +568,16 @@
           <span class="detail-val">Over 30 years ago</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Clients served</span>
+          <span class="detail-label">Clients</span>
           <span class="detail-val">UK, Europe, North America</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Email</span>
-          <span class="detail-val"><a href="mailto:enquiries@devfusion.net" style="color:rgba(255,255,255,0.6)">enquiries@devfusion.net</a></span>
+          <span class="detail-val"><a href="mailto:enquiries@devfusion.net">enquiries@devfusion.net</a></span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Phone</span>
-          <span class="detail-val"><a href="tel:07866733164" style="color:rgba(255,255,255,0.6)">07866 733164</a></span>
+          <span class="detail-val"><a href="tel:07866733164">07866 733164</a></span>
         </div>
       </div>
     </div>
@@ -747,11 +587,52 @@
 <!-- CONTACT -->
 <section class="contact" id="contact">
   <div class="contact-inner">
-    <h2>Ready to stop wrestling with <em>spreadsheets</em>?</h2>
-    <p>Tell us about your project and we'll come back to you quickly. No jargon, no pressure — just a straight conversation about what you need.</p>
-    <div class="contact-links">
-      <a class="contact-link primary" href="mailto:enquiries@devfusion.net">enquiries@devfusion.net</a>
-      <a class="contact-link secondary" href="tel:07866733164">07866 733164</a>
+    <h2 class="fade-up">Ready to stop wrestling<br>with <em>spreadsheets</em>?</h2>
+    <p class="fade-up delay-1">Tell us about your project and we'll get back to you quickly. No jargon, no pressure.</p>
+
+    <form class="contact-form fade-up delay-2" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+      <input type="hidden" name="form-name" value="contact" />
+      <p hidden><label>Don't fill this out: <input name="bot-field" /></label></p>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Your name</label>
+          <input type="text" id="name" name="name" placeholder="Jane Smith" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email" placeholder="jane@company.com" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="phone">Phone (optional)</label>
+          <input type="tel" id="phone" name="phone" placeholder="+44 7000 000000" />
+        </div>
+        <div class="form-group">
+          <label for="budget">Rough budget</label>
+          <select id="budget" name="budget">
+            <option value="" disabled selected>Select a range</option>
+            <option>Under £10k</option>
+            <option>£10k – £25k</option>
+            <option>£25k – £50k</option>
+            <option>£50k – £100k</option>
+            <option>£100k+</option>
+            <option>Not sure yet</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label for="message">Tell us about your project</label>
+          <textarea id="message" name="message" placeholder="What are you trying to solve? What does success look like?" required></textarea>
+        </div>
+      </div>
+      <button type="submit" class="form-submit">Send message →</button>
+    </form>
+
+    <div class="contact-alt fade-up delay-3">
+      <a href="mailto:enquiries@devfusion.net">enquiries@devfusion.net</a>
+      <a href="tel:07866733164">07866 733164</a>
     </div>
   </div>
 </section>
@@ -762,22 +643,18 @@
 </footer>
 
 <script>
-  function toggleTheme() {
-    var isOrange = document.documentElement.getAttribute('data-theme') === 'orange';
-    var next = isOrange ? 'blue' : 'orange';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('df-theme', next);
-    updateToggle();
-  }
-
-  function updateToggle() {
-    var isOrange = document.documentElement.getAttribute('data-theme') === 'orange';
-    document.querySelectorAll('.t-opt').forEach(function(el) {
-      el.classList.toggle('active', (el.getAttribute('data-opt') === 'orange') === isOrange);
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
     });
-  }
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-  updateToggle();
+  document.querySelectorAll('.fade-up').forEach(function(el) {
+    observer.observe(el);
+  });
 </script>
 </body>
 </html>
