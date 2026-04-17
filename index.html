@@ -1,14 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="orange">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Devfusion – Software Solutions, Midlands</title>
+<script>
+  /* Apply saved theme before first paint to prevent flash */
+  (function(){ var t=localStorage.getItem('df-theme'); if(t) document.documentElement.setAttribute('data-theme',t); })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  /* ── BLUE THEME (default) ── */
   :root {
     --ink: #0f1117;
     --ink-mid: #3a3d47;
@@ -19,6 +24,7 @@
     --accent: #1a3cff;
     --accent-mid: #d4dcff;
     --accent-dark: #0a1f99;
+    --accent-hover: #2b4fff;
     --warm: #e8440a;
     --warm-light: #fde8e0;
     --border: rgba(15,17,23,0.1);
@@ -27,6 +33,56 @@
     --max: 1160px;
     --font-display: 'DM Serif Display', Georgia, serif;
     --font-body: 'DM Sans', system-ui, sans-serif;
+    /* theme tokens */
+    --btn-radius: 100px;
+    --nav-cta-bg: var(--ink);
+    --nav-cta-hover: var(--accent);
+    --service-hover: #f0f2ff;
+    --projects-bg: var(--warm-light);
+    --projects-grid: repeat(auto-fit, minmax(300px, 1fr));
+    --hero-bg: #0f1117;
+    --hero-text: #fff;
+    --hero-sub: rgba(255,255,255,0.6);
+    --hero-glow-opacity: 1;
+    --hero-h1-size: clamp(3rem, 7vw, 5.5rem);
+    --hero-h1-tracking: normal;
+    --hero-stat-color: #fff;
+    --hero-stat-label: rgba(255,255,255,0.45);
+    --hero-stat-accent: var(--accent-mid);
+    --section-title-size: clamp(2rem, 4vw, 3rem);
+    --section-title-tracking: normal;
+    --expertise-item-hover-shadow: 0 0 0 3px var(--accent-mid);
+  }
+
+  /* ── ORANGE THEME ── */
+  [data-theme="orange"] {
+    --accent: #ff6600;
+    --accent-mid: #ffe8d6;
+    --accent-dark: #cc4400;
+    --accent-hover: #e55a00;
+    --surface-2: #f8f8f7;
+    --surface-3: #f2f2f0;
+    --border: #e5e5e5;
+    --font-display: 'Inter', system-ui, sans-serif;
+    /* theme tokens */
+    --btn-radius: 6px;
+    --nav-cta-bg: #ff6600;
+    --nav-cta-hover: #e55a00;
+    --service-hover: #fff8f4;
+    --projects-bg: var(--surface);
+    --projects-grid: repeat(2, 1fr);
+    --hero-bg: #ffffff;
+    --hero-text: #0f1117;
+    --hero-sub: #3a3d47;
+    --hero-glow-opacity: 0;
+    --hero-h1-size: clamp(2.5rem, 5vw, 4rem);
+    --hero-h1-tracking: -0.03em;
+    --hero-stat-color: #0f1117;
+    --hero-stat-label: #7a7f8e;
+    --hero-stat-accent: #ff6600;
+    --section-title-size: clamp(1.75rem, 3vw, 2.5rem);
+    --section-title-tracking: -0.02em;
+    --expertise-item-hover-shadow: none;
   }
 
   html { scroll-behavior: smooth; }
@@ -35,7 +91,7 @@
   /* ── NAV ── */
   nav {
     position: sticky; top: 0; z-index: 100;
-    background: rgba(255,255,255,0.92);
+    background: rgba(255,255,255,0.93);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     padding: 0 2rem;
@@ -43,10 +99,10 @@
   .nav-inner {
     max-width: var(--max); margin: 0 auto;
     display: flex; align-items: center; justify-content: space-between;
-    height: 64px;
+    height: 68px; gap: 1.5rem;
   }
-  .nav-logo { text-decoration: none; display: flex; align-items: center; }
-  .nav-logo img { height: 30px; width: auto; display: block; }
+  .nav-logo { text-decoration: none; display: flex; align-items: center; flex-shrink: 0; }
+  .nav-logo img { height: 36px; width: auto; display: block; }
   .nav-links { display: flex; gap: 2rem; list-style: none; }
   .nav-links a {
     color: var(--ink-mid); text-decoration: none;
@@ -54,25 +110,49 @@
     transition: color 0.2s;
   }
   .nav-links a:hover { color: var(--ink); }
+  .nav-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+
+  /* Theme toggle */
+  .theme-toggle {
+    display: flex; align-items: center; gap: 2px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 100px; padding: 3px; cursor: pointer;
+    font-family: var(--font-body); font-size: 12px; font-weight: 500;
+  }
+  .t-opt {
+    padding: 4px 11px; border-radius: 100px;
+    color: var(--ink-muted); transition: background 0.2s, color 0.2s;
+    white-space: nowrap; user-select: none;
+  }
+  .t-opt.active { background: var(--accent); color: #fff; }
+
   .nav-cta {
-    background: var(--ink); color: #fff;
-    padding: 8px 20px; border-radius: 100px;
+    background: var(--nav-cta-bg); color: #fff;
+    padding: 8px 20px; border-radius: var(--btn-radius);
     font-size: 14px; font-weight: 500; text-decoration: none;
     transition: background 0.2s;
   }
-  .nav-cta:hover { background: var(--accent); }
+  .nav-cta:hover { background: var(--nav-cta-hover); }
 
   /* ── HERO ── */
   .hero {
-    background: var(--ink);
+    background: var(--hero-bg);
     padding: 7rem 2rem 5rem;
     position: relative; overflow: hidden;
+    border-bottom: 1px solid transparent;
+    transition: background 0.3s;
+  }
+  [data-theme="orange"] .hero {
+    padding: 6rem 2rem 5rem;
+    border-bottom-color: var(--border);
   }
   .hero::before {
     content: '';
     position: absolute; inset: 0;
     background: radial-gradient(ellipse 80% 60% at 70% 50%, #1a3cff22 0%, transparent 70%);
     pointer-events: none;
+    opacity: var(--hero-glow-opacity);
+    transition: opacity 0.3s;
   }
   .hero-inner { max-width: var(--max); margin: 0 auto; position: relative; }
   .hero-eyebrow {
@@ -81,61 +161,92 @@
     color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500;
     padding: 5px 14px; border-radius: 100px; margin-bottom: 2rem;
     letter-spacing: 0.04em; text-transform: uppercase;
+    transition: all 0.3s;
   }
-  .hero-eyebrow::before { content: ''; width: 6px; height: 6px; background: #4cff88; border-radius: 50%; }
+  .hero-eyebrow::before { content: ''; width: 6px; height: 6px; background: #4cff88; border-radius: 50%; flex-shrink: 0; }
+  [data-theme="orange"] .hero-eyebrow {
+    background: none; border-color: transparent; padding: 0;
+    color: var(--accent); letter-spacing: 0.08em; margin-bottom: 1.5rem;
+    font-weight: 600; font-size: 12px;
+  }
+  [data-theme="orange"] .hero-eyebrow::before { display: none; }
+
   .hero h1 {
     font-family: var(--font-display);
-    font-size: clamp(3rem, 7vw, 5.5rem);
-    color: #fff; line-height: 1.05;
-    max-width: 900px;
-    margin-bottom: 1.75rem;
+    font-size: var(--hero-h1-size);
+    color: var(--hero-text); line-height: 1.05;
+    max-width: 900px; margin-bottom: 1.75rem;
+    letter-spacing: var(--hero-h1-tracking);
+    transition: color 0.3s, font-size 0.3s;
   }
+  [data-theme="orange"] .hero h1 { line-height: 1.1; font-weight: 600; }
   .hero h1 em { color: var(--accent-mid); font-style: italic; }
+  [data-theme="orange"] .hero h1 em { color: var(--accent); font-style: normal; font-weight: 600; }
   .hero-sub {
-    font-size: 1.125rem; color: rgba(255,255,255,0.6);
+    font-size: 1.125rem; color: var(--hero-sub);
     max-width: 540px; margin-bottom: 2.5rem; font-weight: 300;
-    line-height: 1.75;
+    line-height: 1.75; transition: color 0.3s;
   }
   .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
   .btn-primary {
     background: var(--accent); color: #fff;
-    padding: 14px 28px; border-radius: 100px;
+    padding: 14px 28px; border-radius: var(--btn-radius);
     font-size: 15px; font-weight: 500; text-decoration: none;
     transition: background 0.2s, transform 0.15s;
   }
-  .btn-primary:hover { background: #2b4fff; transform: translateY(-1px); }
+  .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+  [data-theme="orange"] .btn-primary:hover { transform: none; }
   .btn-ghost {
     background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85);
     border: 1px solid rgba(255,255,255,0.2);
-    padding: 14px 28px; border-radius: 100px;
+    padding: 14px 28px; border-radius: var(--btn-radius);
     font-size: 15px; font-weight: 500; text-decoration: none;
-    transition: background 0.2s;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
   }
   .btn-ghost:hover { background: rgba(255,255,255,0.14); }
+  [data-theme="orange"] .btn-ghost {
+    background: transparent; color: var(--ink);
+    border-color: var(--border);
+  }
+  [data-theme="orange"] .btn-ghost:hover { background: transparent; border-color: var(--ink-muted); }
+
   .hero-stats {
     display: flex; gap: 3rem; margin-top: 4rem; flex-wrap: wrap;
     border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2.5rem;
+    transition: border-color 0.3s;
   }
+  [data-theme="orange"] .hero-stats { border-top-color: var(--border); margin-top: 3rem; }
   .hero-stat-num {
-    font-family: var(--font-display); font-size: 2.5rem; color: #fff; line-height: 1;
+    font-family: var(--font-display);
+    font-size: 2.5rem; color: var(--hero-stat-color); line-height: 1;
+    letter-spacing: var(--hero-h1-tracking);
+    transition: color 0.3s;
   }
-  .hero-stat-label { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 4px; }
+  [data-theme="orange"] .hero-stat-num { font-size: 2.25rem; font-weight: 600; }
+  .hero-stat-num .accent { color: var(--hero-stat-accent); }
+  .hero-stat-label { font-size: 13px; color: var(--hero-stat-label); margin-top: 4px; transition: color 0.3s; }
 
   /* ── SECTION STRUCTURE ── */
   section { padding: 6rem 2rem; }
+  [data-theme="orange"] section { padding: 5rem 2rem; }
   .section-inner { max-width: var(--max); margin: 0 auto; }
   .section-label {
     font-size: 12px; font-weight: 500; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
   }
+  [data-theme="orange"] .section-label { font-weight: 600; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
   .section-title {
-    font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3rem);
+    font-family: var(--font-display);
+    font-size: var(--section-title-size);
+    letter-spacing: var(--section-title-tracking);
     color: var(--ink); line-height: 1.15; margin-bottom: 1.25rem;
   }
+  [data-theme="orange"] .section-title { line-height: 1.2; margin-bottom: 1rem; font-weight: 600; }
   .section-intro {
     font-size: 1.0625rem; color: var(--ink-mid); max-width: 560px;
     line-height: 1.75; font-weight: 300;
   }
+  [data-theme="orange"] .section-intro { font-size: 1rem; }
 
   /* ── SERVICES ── */
   .services { background: var(--surface-2); }
@@ -146,19 +257,29 @@
     border: 1.5px solid var(--border); border-radius: var(--radius-lg);
     overflow: hidden;
   }
-  .service-card {
-    background: var(--surface); padding: 2.5rem 2rem;
-    transition: background 0.2s;
+  [data-theme="orange"] .services-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px; border-radius: 8px;
   }
-  .service-card:hover { background: #f0f2ff; }
+  .service-card { background: var(--surface); padding: 2.5rem 2rem; transition: background 0.2s; }
+  .service-card:hover { background: var(--service-hover); }
+  [data-theme="orange"] .service-card { padding: 2.25rem 2rem; }
   .service-icon {
     width: 48px; height: 48px; background: var(--accent-mid);
     border-radius: var(--radius); margin-bottom: 1.5rem;
     display: flex; align-items: center; justify-content: center;
+    transition: background 0.3s;
   }
   .service-icon svg { width: 22px; height: 22px; stroke: var(--accent-dark); stroke-width: 1.8; fill: none; }
+  [data-theme="orange"] .service-icon {
+    background: none; width: 40px; height: 40px; margin-bottom: 1.25rem;
+    color: var(--accent);
+  }
+  [data-theme="orange"] .service-icon svg { width: 40px; height: 40px; stroke: currentColor; stroke-width: 1.5; }
   .service-card h3 { font-size: 1.125rem; font-weight: 500; margin-bottom: 0.75rem; }
+  [data-theme="orange"] .service-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.6rem; }
   .service-card p { font-size: 0.9375rem; color: var(--ink-mid); line-height: 1.7; }
+  [data-theme="orange"] .service-card p { font-size: 0.9rem; }
 
   /* ── EXPERTISE ── */
   .expertise { background: var(--surface); }
@@ -166,113 +287,162 @@
     display: grid; grid-template-columns: 1fr 1fr;
     gap: 5rem; align-items: center; margin-top: 3rem;
   }
+  [data-theme="orange"] .expertise-layout { align-items: start; }
   .expertise-list { list-style: none; display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }
+  [data-theme="orange"] .expertise-list { gap: 0; margin-top: 2rem; }
   .expertise-item {
     display: flex; gap: 1rem; align-items: flex-start;
     padding: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius-lg);
     transition: border-color 0.2s, box-shadow 0.2s;
   }
-  .expertise-item:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-mid); }
+  .expertise-item:hover { border-color: var(--accent); box-shadow: var(--expertise-item-hover-shadow); }
+  [data-theme="orange"] .expertise-item {
+    padding: 1.75rem 0; border: none; border-bottom: 1px solid var(--border); border-radius: 0;
+  }
+  [data-theme="orange"] .expertise-list li:first-child .expertise-item { padding-top: 0; }
+  [data-theme="orange"] .expertise-item:hover { border-color: var(--border); box-shadow: none; }
   .expertise-num {
     font-family: var(--font-display); font-size: 1.5rem; color: var(--accent-mid);
-    line-height: 1; min-width: 32px; font-style: italic;
+    line-height: 1; min-width: 32px; font-style: italic; transition: color 0.3s;
+  }
+  [data-theme="orange"] .expertise-num {
+    font-family: var(--font-body); font-size: 13px; font-weight: 600;
+    color: var(--accent); font-style: normal; letter-spacing: 0.04em; margin-top: 2px;
   }
   .expertise-item h4 { font-size: 0.9375rem; font-weight: 500; margin-bottom: 4px; }
+  [data-theme="orange"] .expertise-item h4 { font-weight: 600; }
   .expertise-item p { font-size: 0.875rem; color: var(--ink-muted); line-height: 1.6; }
+  [data-theme="orange"] .expertise-item p { color: var(--ink-mid); }
   .expertise-panel {
-    background: var(--ink); border-radius: var(--radius-lg); padding: 3rem 2.5rem;
-    color: #fff;
+    background: var(--ink); border-radius: var(--radius-lg); padding: 3rem 2.5rem; color: #fff;
   }
+  [data-theme="orange"] .expertise-panel { border-radius: 8px; padding: 2.5rem; }
   .expertise-panel h3 { font-family: var(--font-display); font-size: 1.75rem; margin-bottom: 1.5rem; color: #fff; }
+  [data-theme="orange"] .expertise-panel h3 { font-family: var(--font-body); font-size: 1.125rem; font-weight: 600; margin-bottom: 1.25rem; }
   .tech-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  [data-theme="orange"] .tech-tags { gap: 7px; margin-bottom: 2rem; }
   .tech-tag {
     font-size: 13px; font-weight: 400;
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
     color: rgba(255,255,255,0.75); padding: 5px 12px; border-radius: 100px;
   }
+  [data-theme="orange"] .tech-tag { font-size: 12px; font-weight: 500; border-radius: 4px; padding: 4px 11px; }
   .specialisms { margin-top: 2.5rem; }
-  .specialism {
-    border-top: 1px solid rgba(255,255,255,0.1);
-    padding: 1.25rem 0;
-  }
+  [data-theme="orange"] .specialisms { margin-top: 0; }
+  .specialism { border-top: 1px solid rgba(255,255,255,0.1); padding: 1.25rem 0; }
   .specialism:last-child { border-bottom: 1px solid rgba(255,255,255,0.1); }
+  [data-theme="orange"] .specialism {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1); padding: 1rem 0;
+  }
+  [data-theme="orange"] .specialism:last-child { border-bottom-color: rgba(255,255,255,0.1); }
   .specialism-title { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  [data-theme="orange"] .specialism-title { font-size: 12px; letter-spacing: 0.05em; margin-bottom: 0; white-space: nowrap; }
   .specialism-val { font-size: 0.9375rem; color: rgba(255,255,255,0.85); }
+  [data-theme="orange"] .specialism-val { font-size: 0.875rem; text-align: right; }
 
-  /* ── PROJECTS BANNER ── */
-  .projects { background: var(--warm-light); }
+  /* ── PROJECTS ── */
+  .projects { background: var(--projects-bg); transition: background 0.3s; }
   .projects-intro { max-width: var(--max); margin: 0 auto; }
-  .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+  .projects-grid { display: grid; grid-template-columns: var(--projects-grid); gap: 1.5rem; margin-top: 3rem; }
   .project-card {
     background: var(--surface); padding: 2rem;
     border-radius: var(--radius-lg); border: 1px solid var(--border);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   }
   .project-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  [data-theme="orange"] .project-card:hover {
+    transform: none; border-color: var(--accent);
+    box-shadow: 0 4px 20px rgba(255,102,0,0.08);
+  }
   .project-tag {
     display: inline-block; font-size: 11px; font-weight: 500;
     text-transform: uppercase; letter-spacing: 0.06em;
     background: var(--warm-light); color: var(--warm);
     border: 1px solid rgba(232,68,10,0.2);
     padding: 3px 10px; border-radius: 100px; margin-bottom: 1rem;
+    transition: all 0.3s;
+  }
+  [data-theme="orange"] .project-tag {
+    background: none; border: none; padding: 0; border-radius: 0;
+    color: var(--accent); letter-spacing: 0.07em; margin-bottom: 0.75rem; font-weight: 600;
   }
   .project-card h3 { font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 0.75rem; }
+  [data-theme="orange"] .project-card h3 { font-family: var(--font-body); font-size: 1.0625rem; font-weight: 600; margin-bottom: 0.6rem; letter-spacing: -0.01em; }
   .project-card p { font-size: 0.9rem; color: var(--ink-mid); line-height: 1.7; }
 
   /* ── WHY US ── */
   .why { background: var(--surface-3); }
   .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; margin-top: 3rem; }
-  .why-card { }
   .why-card h4 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
+  [data-theme="orange"] .why-card h4 { font-weight: 600; }
   .why-card p { font-size: 0.9rem; color: var(--ink-mid); line-height: 1.65; }
   .why-num { font-family: var(--font-display); font-size: 3rem; color: var(--accent-mid); line-height: 1; margin-bottom: 1rem; font-style: italic; }
+  [data-theme="orange"] .why-num { font-family: var(--font-body); font-size: 2.5rem; font-weight: 600; font-style: normal; color: var(--accent); }
 
   /* ── ABOUT ── */
   .about { background: var(--surface); }
+  [data-theme="orange"] .about { background: var(--surface-2); }
   .about-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+  [data-theme="orange"] .about-layout { align-items: start; }
   .about-content h2 { font-family: var(--font-display); font-size: clamp(2rem, 3.5vw, 2.75rem); margin-bottom: 1.5rem; }
+  [data-theme="orange"] .about-content h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); font-weight: 600; letter-spacing: -0.02em; }
   .about-content p { font-size: 1rem; color: var(--ink-mid); line-height: 1.8; margin-bottom: 1rem; font-weight: 300; }
   .about-aside {
-    background: var(--ink); border-radius: var(--radius-lg); padding: 2.5rem;
-    color: #fff;
+    background: var(--ink); border-radius: var(--radius-lg); padding: 2.5rem; color: #fff;
   }
+  [data-theme="orange"] .about-aside { border-radius: 8px; }
   .about-aside h3 { font-family: var(--font-display); font-size: 1.5rem; color: #fff; margin-bottom: 1.5rem; }
+  [data-theme="orange"] .about-aside h3 { font-family: var(--font-body); font-size: 1rem; font-weight: 600; }
   .detail-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.9rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); gap: 1rem; }
   .detail-row:last-child { border-bottom: none; }
   .detail-label { font-size: 13px; color: rgba(255,255,255,0.45); white-space: nowrap; }
+  [data-theme="orange"] .detail-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; padding: 0.875rem 0; padding-right: 0; }
   .detail-val { font-size: 14px; color: rgba(255,255,255,0.85); text-align: right; }
+  [data-theme="orange"] .detail-val { padding: 0.875rem 0; line-height: 1.5; }
+  [data-theme="orange"] .detail-val a { color: rgba(255,255,255,0.6); text-decoration: none; }
+  [data-theme="orange"] .detail-val a:hover { color: var(--accent); }
 
   /* ── CONTACT ── */
   .contact { background: var(--ink); padding: 7rem 2rem; }
+  [data-theme="orange"] .contact { padding: 6rem 2rem; }
   .contact-inner { max-width: 640px; margin: 0 auto; text-align: center; }
   .contact h2 { font-family: var(--font-display); font-size: clamp(2.25rem, 5vw, 3.5rem); color: #fff; line-height: 1.1; margin-bottom: 1.25rem; }
+  [data-theme="orange"] .contact h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 1rem; }
+  .contact h2 em { color: var(--accent-mid); font-style: italic; }
+  [data-theme="orange"] .contact h2 em { color: var(--accent); font-style: normal; }
   .contact p { font-size: 1.0625rem; color: rgba(255,255,255,0.55); font-weight: 300; margin-bottom: 2.5rem; line-height: 1.7; }
   .contact-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; }
   .contact-link {
     display: flex; align-items: center; gap: 8px;
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
     color: rgba(255,255,255,0.85);
-    padding: 12px 22px; border-radius: 100px;
-    text-decoration: none; font-size: 15px;
-    transition: background 0.2s;
+    padding: 12px 22px; border-radius: var(--btn-radius);
+    text-decoration: none; font-size: 15px; font-weight: 500;
+    transition: background 0.2s, opacity 0.15s;
   }
   .contact-link:hover { background: rgba(255,255,255,0.15); }
   .contact-link.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .contact-link.primary:hover { background: #2b4fff; }
+  .contact-link.primary:hover { background: var(--accent-hover); }
+  [data-theme="orange"] .contact-link.secondary { border-radius: var(--btn-radius); }
+  [data-theme="orange"] .contact-link:hover { opacity: 0.85; background: rgba(255,255,255,0.08); }
 
   /* ── FOOTER ── */
-  footer {
-    background: #080a10; color: rgba(255,255,255,0.35);
-    padding: 2rem; text-align: center; font-size: 13px;
-  }
+  footer { background: #080a10; color: rgba(255,255,255,0.35); padding: 2rem; text-align: center; font-size: 13px; }
   footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+  footer a:hover { color: rgba(255,255,255,0.7); }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     .expertise-layout, .about-layout { grid-template-columns: 1fr; gap: 2.5rem; }
-    .nav-links, .nav-cta { display: none; }
+    [data-theme="orange"] .services-grid { grid-template-columns: 1fr; }
+    [data-theme="orange"] .projects-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .nav-cta { display: none; }
     .hero { padding: 5rem 1.25rem 4rem; }
     section { padding: 4rem 1.25rem; }
+    [data-theme="orange"] section { padding: 3.5rem 1.25rem; }
+    .t-opt { padding: 4px 8px; }
   }
 
   /* ── ANIMATIONS ── */
@@ -288,14 +458,20 @@
 <!-- NAV -->
 <nav>
   <div class="nav-inner">
-    <a class="nav-logo" href="#home"><span class="logo-dev">dev</span><span class="logo-fusion">fusion</span></a>
+    <a class="nav-logo" href="#home"><img src="df_logo.png" alt="Devfusion" /></a>
     <ul class="nav-links">
       <li><a href="#services">Services</a></li>
       <li><a href="#expertise">Expertise</a></li>
       <li><a href="#projects">Projects</a></li>
       <li><a href="#about">About</a></li>
     </ul>
-    <a class="nav-cta" href="#contact">Get in touch</a>
+    <div class="nav-right">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Switch theme">
+        <span class="t-opt" data-opt="blue">Blue</span>
+        <span class="t-opt" data-opt="orange">Orange</span>
+      </button>
+      <a class="nav-cta" href="#contact">Get in touch</a>
+    </div>
   </div>
 </nav>
 
@@ -313,7 +489,7 @@
     </div>
     <div class="hero-stats">
       <div>
-        <div class="hero-stat-num">30<span style="font-size:1.5rem">+</span></div>
+        <div class="hero-stat-num">30<span class="accent" style="font-size:0.6em">+</span></div>
         <div class="hero-stat-label">Years of experience</div>
       </div>
       <div>
@@ -340,7 +516,7 @@
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg>
         </div>
-        <h3>Back office & integration</h3>
+        <h3>Back office &amp; integration</h3>
         <p>Too many spreadsheets? We connect your systems to each other and to third-party platforms — Amazon, eBay, Google — so data flows without manual effort.</p>
       </div>
 
@@ -380,7 +556,7 @@
         <div class="service-icon">
           <svg viewBox="0 0 24 24"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
         </div>
-        <h3>Support & evolution</h3>
+        <h3>Support &amp; evolution</h3>
         <p>Software shouldn't be a snapshot. We offer ongoing support, documentation, user training, and iterative development so your solution grows with your business.</p>
       </div>
 
@@ -414,7 +590,7 @@
           <li class="expertise-item">
             <div class="expertise-num">03</div>
             <div>
-              <h4>Handover & support</h4>
+              <h4>Handover &amp; support</h4>
               <p>Full documentation, user manuals, staff training, and a support contract that keeps things running smoothly.</p>
             </div>
           </li>
@@ -507,12 +683,12 @@
     <h2 class="section-title">What sets us apart</h2>
     <div class="why-grid">
       <div class="why-card">
-        <div class="why-num">30<sup style="font-size:1.25rem">+</sup></div>
+        <div class="why-num">30<sup style="font-size:0.45em;vertical-align:super">+</sup></div>
         <h4>Years of delivery</h4>
         <p>Nearly three decades of shipped projects across sectors. We've been around long enough to know what works.</p>
       </div>
       <div class="why-card">
-        <div class="why-num" style="color:#e8440a;">✓</div>
+        <div class="why-num">✓</div>
         <h4>On time, on budget</h4>
         <p>We're confident enough to say it plainly. A clear spec at the start means no surprises at the end.</p>
       </div>
@@ -536,7 +712,7 @@
     <div class="about-layout">
       <div class="about-content">
         <div class="section-label">About us</div>
-        <h2>Based in Evesham. <br>Built for the world.</h2>
+        <h2>Based in Evesham.<br>Built for the world.</h2>
         <p>Devfusion is a software development consultancy based in Offenham, Worcestershire — right in the heart of the Midlands. We're a small, experienced team with a global outlook, serving clients across the UK, Europe, and North America for nearly three decades.</p>
         <p>We might be local, but we're no strangers to working remotely, travelling to clients, or getting on a call at short notice. We work the way you need us to.</p>
         <p>What we won't do is build software that becomes a burden. Everything we ship is designed to make your business more productive, not to create a new dependency.</p>
@@ -568,14 +744,14 @@
   </div>
 </section>
 
-<!-- CONTACT CTA -->
+<!-- CONTACT -->
 <section class="contact" id="contact">
   <div class="contact-inner">
-    <h2>Ready to stop wrestling with spreadsheets?</h2>
+    <h2>Ready to stop wrestling with <em>spreadsheets</em>?</h2>
     <p>Tell us about your project and we'll come back to you quickly. No jargon, no pressure — just a straight conversation about what you need.</p>
     <div class="contact-links">
       <a class="contact-link primary" href="mailto:enquiries@devfusion.net">enquiries@devfusion.net</a>
-      <a class="contact-link" href="tel:07866733164">07866 733164</a>
+      <a class="contact-link secondary" href="tel:07866733164">07866 733164</a>
     </div>
   </div>
 </section>
@@ -585,5 +761,23 @@
   <p>&copy; 2025 Devfusion Ltd · The Code Hub, Offenham, Worcestershire · <a href="mailto:enquiries@devfusion.net">enquiries@devfusion.net</a></p>
 </footer>
 
+<script>
+  function toggleTheme() {
+    var isOrange = document.documentElement.getAttribute('data-theme') === 'orange';
+    var next = isOrange ? 'blue' : 'orange';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('df-theme', next);
+    updateToggle();
+  }
+
+  function updateToggle() {
+    var isOrange = document.documentElement.getAttribute('data-theme') === 'orange';
+    document.querySelectorAll('.t-opt').forEach(function(el) {
+      el.classList.toggle('active', (el.getAttribute('data-opt') === 'orange') === isOrange);
+    });
+  }
+
+  updateToggle();
+</script>
 </body>
 </html>
