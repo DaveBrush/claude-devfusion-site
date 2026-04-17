@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Devfusion – Software Solutions, Midlands</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0f1117;
+    --ink-mid: #3a3d47;
+    --ink-muted: #7a7f8e;
+    --surface: #ffffff;
+    --surface-2: #f6f6f4;
+    --surface-3: #eeecea;
+    --accent: #1a3cff;
+    --accent-mid: #d4dcff;
+    --accent-dark: #0a1f99;
+    --warm: #e8440a;
+    --warm-light: #fde8e0;
+    --border: rgba(15,17,23,0.1);
+    --radius: 4px;
+    --radius-lg: 12px;
+    --max: 1160px;
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font-body); color: var(--ink); background: var(--surface); font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+  }
+  .nav-inner {
+    max-width: var(--max); margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .nav-logo { text-decoration: none; display: flex; align-items: center; }
+  .nav-logo img { height: 30px; width: auto; display: block; }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    color: var(--ink-mid); text-decoration: none;
+    font-size: 14px; font-weight: 500; letter-spacing: 0.01em;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta {
+    background: var(--ink); color: #fff;
+    padding: 8px 20px; border-radius: 100px;
+    font-size: 14px; font-weight: 500; text-decoration: none;
+    transition: background 0.2s;
+  }
+  .nav-cta:hover { background: var(--accent); }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--ink);
+    padding: 7rem 2rem 5rem;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 70% 50%, #1a3cff22 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-inner { max-width: var(--max); margin: 0 auto; position: relative; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500;
+    padding: 5px 14px; border-radius: 100px; margin-bottom: 2rem;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .hero-eyebrow::before { content: ''; width: 6px; height: 6px; background: #4cff88; border-radius: 50%; }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    color: #fff; line-height: 1.05;
+    max-width: 900px;
+    margin-bottom: 1.75rem;
+  }
+  .hero h1 em { color: var(--accent-mid); font-style: italic; }
+  .hero-sub {
+    font-size: 1.125rem; color: rgba(255,255,255,0.6);
+    max-width: 540px; margin-bottom: 2.5rem; font-weight: 300;
+    line-height: 1.75;
+  }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--accent); color: #fff;
+    padding: 14px 28px; border-radius: 100px;
+    font-size: 15px; font-weight: 500; text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-primary:hover { background: #2b4fff; transform: translateY(-1px); }
+  .btn-ghost {
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 14px 28px; border-radius: 100px;
+    font-size: 15px; font-weight: 500; text-decoration: none;
+    transition: background 0.2s;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.14); }
+  .hero-stats {
+    display: flex; gap: 3rem; margin-top: 4rem; flex-wrap: wrap;
+    border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2.5rem;
+  }
+  .hero-stat-num {
+    font-family: var(--font-display); font-size: 2.5rem; color: #fff; line-height: 1;
+  }
+  .hero-stat-label { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 4px; }
+
+  /* ── SECTION STRUCTURE ── */
+  section { padding: 6rem 2rem; }
+  .section-inner { max-width: var(--max); margin: 0 auto; }
+  .section-label {
+    font-size: 12px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--ink); line-height: 1.15; margin-bottom: 1.25rem;
+  }
+  .section-intro {
+    font-size: 1.0625rem; color: var(--ink-mid); max-width: 560px;
+    line-height: 1.75; font-weight: 300;
+  }
+
+  /* ── SERVICES ── */
+  .services { background: var(--surface-2); }
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5px; margin-top: 3.5rem;
+    border: 1.5px solid var(--border); border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .service-card {
+    background: var(--surface); padding: 2.5rem 2rem;
+    transition: background 0.2s;
+  }
+  .service-card:hover { background: #f0f2ff; }
+  .service-icon {
+    width: 48px; height: 48px; background: var(--accent-mid);
+    border-radius: var(--radius); margin-bottom: 1.5rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .service-icon svg { width: 22px; height: 22px; stroke: var(--accent-dark); stroke-width: 1.8; fill: none; }
+  .service-card h3 { font-size: 1.125rem; font-weight: 500; margin-bottom: 0.75rem; }
+  .service-card p { font-size: 0.9375rem; color: var(--ink-mid); line-height: 1.7; }
+
+  /* ── EXPERTISE ── */
+  .expertise { background: var(--surface); }
+  .expertise-layout {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 5rem; align-items: center; margin-top: 3rem;
+  }
+  .expertise-list { list-style: none; display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }
+  .expertise-item {
+    display: flex; gap: 1rem; align-items: flex-start;
+    padding: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius-lg);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .expertise-item:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-mid); }
+  .expertise-num {
+    font-family: var(--font-display); font-size: 1.5rem; color: var(--accent-mid);
+    line-height: 1; min-width: 32px; font-style: italic;
+  }
+  .expertise-item h4 { font-size: 0.9375rem; font-weight: 500; margin-bottom: 4px; }
+  .expertise-item p { font-size: 0.875rem; color: var(--ink-muted); line-height: 1.6; }
+  .expertise-panel {
+    background: var(--ink); border-radius: var(--radius-lg); padding: 3rem 2.5rem;
+    color: #fff;
+  }
+  .expertise-panel h3 { font-family: var(--font-display); font-size: 1.75rem; margin-bottom: 1.5rem; color: #fff; }
+  .tech-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tech-tag {
+    font-size: 13px; font-weight: 400;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.75); padding: 5px 12px; border-radius: 100px;
+  }
+  .specialisms { margin-top: 2.5rem; }
+  .specialism {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 1.25rem 0;
+  }
+  .specialism:last-child { border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .specialism-title { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .specialism-val { font-size: 0.9375rem; color: rgba(255,255,255,0.85); }
+
+  /* ── PROJECTS BANNER ── */
+  .projects { background: var(--warm-light); }
+  .projects-intro { max-width: var(--max); margin: 0 auto; }
+  .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+  .project-card {
+    background: var(--surface); padding: 2rem;
+    border-radius: var(--radius-lg); border: 1px solid var(--border);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .project-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  .project-tag {
+    display: inline-block; font-size: 11px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    background: var(--warm-light); color: var(--warm);
+    border: 1px solid rgba(232,68,10,0.2);
+    padding: 3px 10px; border-radius: 100px; margin-bottom: 1rem;
+  }
+  .project-card h3 { font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 0.75rem; }
+  .project-card p { font-size: 0.9rem; color: var(--ink-mid); line-height: 1.7; }
+
+  /* ── WHY US ── */
+  .why { background: var(--surface-3); }
+  .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; margin-top: 3rem; }
+  .why-card { }
+  .why-card h4 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
+  .why-card p { font-size: 0.9rem; color: var(--ink-mid); line-height: 1.65; }
+  .why-num { font-family: var(--font-display); font-size: 3rem; color: var(--accent-mid); line-height: 1; margin-bottom: 1rem; font-style: italic; }
+
+  /* ── ABOUT ── */
+  .about { background: var(--surface); }
+  .about-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+  .about-content h2 { font-family: var(--font-display); font-size: clamp(2rem, 3.5vw, 2.75rem); margin-bottom: 1.5rem; }
+  .about-content p { font-size: 1rem; color: var(--ink-mid); line-height: 1.8; margin-bottom: 1rem; font-weight: 300; }
+  .about-aside {
+    background: var(--ink); border-radius: var(--radius-lg); padding: 2.5rem;
+    color: #fff;
+  }
+  .about-aside h3 { font-family: var(--font-display); font-size: 1.5rem; color: #fff; margin-bottom: 1.5rem; }
+  .detail-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.9rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); gap: 1rem; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-label { font-size: 13px; color: rgba(255,255,255,0.45); white-space: nowrap; }
+  .detail-val { font-size: 14px; color: rgba(255,255,255,0.85); text-align: right; }
+
+  /* ── CONTACT ── */
+  .contact { background: var(--ink); padding: 7rem 2rem; }
+  .contact-inner { max-width: 640px; margin: 0 auto; text-align: center; }
+  .contact h2 { font-family: var(--font-display); font-size: clamp(2.25rem, 5vw, 3.5rem); color: #fff; line-height: 1.1; margin-bottom: 1.25rem; }
+  .contact p { font-size: 1.0625rem; color: rgba(255,255,255,0.55); font-weight: 300; margin-bottom: 2.5rem; line-height: 1.7; }
+  .contact-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; }
+  .contact-link {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.85);
+    padding: 12px 22px; border-radius: 100px;
+    text-decoration: none; font-size: 15px;
+    transition: background 0.2s;
+  }
+  .contact-link:hover { background: rgba(255,255,255,0.15); }
+  .contact-link.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .contact-link.primary:hover { background: #2b4fff; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #080a10; color: rgba(255,255,255,0.35);
+    padding: 2rem; text-align: center; font-size: 13px;
+  }
+  footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .expertise-layout, .about-layout { grid-template-columns: 1fr; gap: 2.5rem; }
+    .nav-links, .nav-cta { display: none; }
+    .hero { padding: 5rem 1.25rem 4rem; }
+    section { padding: 4rem 1.25rem; }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .hero h1, .hero-sub, .hero-actions { animation: fadeUp 0.7s ease both; }
+  .hero-sub { animation-delay: 0.1s; }
+  .hero-actions { animation-delay: 0.2s; }
+  .hero-stats { animation: fadeUp 0.7s 0.35s ease both; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#home"><span class="logo-dev">dev</span><span class="logo-fusion">fusion</span></a>
+    <ul class="nav-links">
+      <li><a href="#services">Services</a></li>
+      <li><a href="#expertise">Expertise</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+    <a class="nav-cta" href="#contact">Get in touch</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Based in the Midlands · Serving clients globally</div>
+    <h1>Software that fits your <em>business</em>, not the other way around</h1>
+    <p class="hero-sub">
+      We design and build bespoke software solutions — back office systems, web applications, and mobile tools — that grow with your business.
+    </p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#contact">Start a conversation</a>
+      <a class="btn-ghost" href="#services">Our services</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-num">30<span style="font-size:1.5rem">+</span></div>
+        <div class="hero-stat-label">Years of experience</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">3</div>
+        <div class="hero-stat-label">Continents served</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">∞</div>
+        <div class="hero-stat-label">Spreadsheets eliminated</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services" id="services">
+  <div class="section-inner">
+    <div class="section-label">What we do</div>
+    <h2 class="section-title">End-to-end software services</h2>
+    <p class="section-intro">From initial consultancy through to deployment and long-term support — we handle the full lifecycle.</p>
+    <div class="services-grid">
+
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg>
+        </div>
+        <h3>Back office & integration</h3>
+        <p>Too many spreadsheets? We connect your systems to each other and to third-party platforms — Amazon, eBay, Google — so data flows without manual effort.</p>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 20h8M12 18v2"/></svg>
+        </div>
+        <h3>Web applications</h3>
+        <p>Bespoke portals, intranets, and extranets built for your users. Secure, scalable, and simple to use — whether that's a handful of employees or hundreds of thousands of products flowing into supermarkets daily.</p>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><circle cx="12" cy="18" r="1"/></svg>
+        </div>
+        <h3>Mobile</h3>
+        <p>Data on the move. Multi-platform mobile applications tailored to your audience — employees, business partners, or end customers — using modern cross-platform tools.</p>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v4c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 10v4c0 1.66 3.58 3 8 3s8-1.34 8-3v-4"/></svg>
+        </div>
+        <h3>Database design</h3>
+        <p>From single-user SQLite databases to SQL Server installations supporting thousands of concurrent users. We also handle data migration, integration, and cleansing.</p>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <h3>Consultancy</h3>
+        <p>We gather requirements, produce detailed specifications, and guide your project through design, development, and testing. Fixed price or time and materials — whatever suits you.</p>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+        </div>
+        <h3>Support & evolution</h3>
+        <p>Software shouldn't be a snapshot. We offer ongoing support, documentation, user training, and iterative development so your solution grows with your business.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- EXPERTISE -->
+<section class="expertise" id="expertise">
+  <div class="section-inner">
+    <div class="expertise-layout">
+      <div>
+        <div class="section-label">How we work</div>
+        <h2 class="section-title">A process built on trust</h2>
+        <p class="section-intro">We work the way you need us to — collaboratively, transparently, and flexibly.</p>
+        <ul class="expertise-list">
+          <li class="expertise-item">
+            <div class="expertise-num">01</div>
+            <div>
+              <h4>Understand your problem</h4>
+              <p>We start with your business — not a solution. Detailed requirements gathering means nothing gets built twice.</p>
+            </div>
+          </li>
+          <li class="expertise-item">
+            <div class="expertise-num">02</div>
+            <div>
+              <h4>Spec, design, build</h4>
+              <p>A clear product specification before a single line of code. Then we design, develop, and test with you involved at every stage.</p>
+            </div>
+          </li>
+          <li class="expertise-item">
+            <div class="expertise-num">03</div>
+            <div>
+              <h4>Handover & support</h4>
+              <p>Full documentation, user manuals, staff training, and a support contract that keeps things running smoothly.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <div class="expertise-panel">
+          <h3>Technologies we use</h3>
+          <div class="tech-tags">
+            <span class="tech-tag">.NET / C#</span>
+            <span class="tech-tag">Entity Framework</span>
+            <span class="tech-tag">LINQ</span>
+            <span class="tech-tag">MVC / Razor</span>
+            <span class="tech-tag">SQL Server</span>
+            <span class="tech-tag">SQLite</span>
+            <span class="tech-tag">MySQL</span>
+            <span class="tech-tag">Angular</span>
+            <span class="tech-tag">React</span>
+            <span class="tech-tag">Knockout.js</span>
+            <span class="tech-tag">jQuery Mobile</span>
+            <span class="tech-tag">Bootstrap</span>
+            <span class="tech-tag">Android (native)</span>
+            <span class="tech-tag">Cross-platform mobile</span>
+            <span class="tech-tag">Windows Services</span>
+            <span class="tech-tag">Web Services</span>
+            <span class="tech-tag">GDSN / GS1</span>
+            <span class="tech-tag">Amazon API</span>
+            <span class="tech-tag">eBay API</span>
+          </div>
+          <div class="specialisms">
+            <div class="specialism">
+              <div class="specialism-title">Retail &amp; supply chain</div>
+              <div class="specialism-val">GDSN data pools, mixed mod, pallets, display shippers — we know the language</div>
+            </div>
+            <div class="specialism">
+              <div class="specialism-title">Affiliate commerce</div>
+              <div class="specialism-val">Deep integration with Amazon, eBay, and Google affiliate marketplaces</div>
+            </div>
+            <div class="specialism">
+              <div class="specialism-title">Engagement model</div>
+              <div class="specialism-val">Fixed price or time &amp; materials, remote or face-to-face</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section class="projects" id="projects">
+  <div class="projects-intro">
+    <div class="section-label">Track record</div>
+    <h2 class="section-title">Projects that made a difference</h2>
+    <p class="section-intro">We've shipped software that matters — in healthcare, retail, and beyond.</p>
+    <div class="projects-grid">
+
+      <div class="project-card">
+        <span class="project-tag">Healthcare</span>
+        <h3>Early cancer detection platform</h3>
+        <p>A web application built to help clinicians identify early warning signs. Developed with performance and regulatory sensitivity at its core.</p>
+      </div>
+
+      <div class="project-card">
+        <span class="project-tag">Retail supply chain</span>
+        <h3>GDSN-certified data pool</h3>
+        <p>Part of the team that designed and built a fully GDSN-certified data pool in just 3 months. We continue to help suppliers and retailers connect to the world of global data sync.</p>
+      </div>
+
+      <div class="project-card">
+        <span class="project-tag">FMCG / Logistics</span>
+        <h3>Supermarket product pipeline</h3>
+        <p>Ensuring over 250,000 product lines reach supermarket shelves day after day — a real-time system handling complex fulfilment logic at scale.</p>
+      </div>
+
+      <div class="project-card">
+        <span class="project-tag">Research</span>
+        <h3>Online survey platform</h3>
+        <p>A purpose-built survey tool tailored to a client's specific research methodology — far beyond what off-the-shelf solutions could offer.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section class="why">
+  <div class="section-inner">
+    <div class="section-label">Why Devfusion</div>
+    <h2 class="section-title">What sets us apart</h2>
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="why-num">30<sup style="font-size:1.25rem">+</sup></div>
+        <h4>Years of delivery</h4>
+        <p>Nearly three decades of shipped projects across sectors. We've been around long enough to know what works.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-num" style="color:#e8440a;">✓</div>
+        <h4>On time, on budget</h4>
+        <p>We're confident enough to say it plainly. A clear spec at the start means no surprises at the end.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-num">🌍</div>
+        <h4>Global reach, local feel</h4>
+        <p>Clients across the UK, Europe, and North America. We're comfortable remote or face-to-face — whatever the project demands.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-num">∞</div>
+        <h4>Software that evolves</h4>
+        <p>We build for the long term. Our solutions adapt as your business changes, eliminating the cost and friction of off-the-shelf tools.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="section-inner">
+    <div class="about-layout">
+      <div class="about-content">
+        <div class="section-label">About us</div>
+        <h2>Based in Evesham. <br>Built for the world.</h2>
+        <p>Devfusion is a software development consultancy based in Offenham, Worcestershire — right in the heart of the Midlands. We're a small, experienced team with a global outlook, serving clients across the UK, Europe, and North America for nearly three decades.</p>
+        <p>We might be local, but we're no strangers to working remotely, travelling to clients, or getting on a call at short notice. We work the way you need us to.</p>
+        <p>What we won't do is build software that becomes a burden. Everything we ship is designed to make your business more productive, not to create a new dependency.</p>
+      </div>
+      <div class="about-aside">
+        <h3>The details</h3>
+        <div class="detail-row">
+          <span class="detail-label">Location</span>
+          <span class="detail-val">The Code Hub, Haddonsacre,<br>Station Road, Offenham. WR11 8JJ</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Founded</span>
+          <span class="detail-val">Over 30 years ago</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Clients served</span>
+          <span class="detail-val">UK, Europe, North America</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Email</span>
+          <span class="detail-val"><a href="mailto:enquiries@devfusion.net" style="color:rgba(255,255,255,0.6)">enquiries@devfusion.net</a></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Phone</span>
+          <span class="detail-val"><a href="tel:07866733164" style="color:rgba(255,255,255,0.6)">07866 733164</a></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT CTA -->
+<section class="contact" id="contact">
+  <div class="contact-inner">
+    <h2>Ready to stop wrestling with spreadsheets?</h2>
+    <p>Tell us about your project and we'll come back to you quickly. No jargon, no pressure — just a straight conversation about what you need.</p>
+    <div class="contact-links">
+      <a class="contact-link primary" href="mailto:enquiries@devfusion.net">enquiries@devfusion.net</a>
+      <a class="contact-link" href="tel:07866733164">07866 733164</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>&copy; 2025 Devfusion Ltd · The Code Hub, Offenham, Worcestershire · <a href="mailto:enquiries@devfusion.net">enquiries@devfusion.net</a></p>
+</footer>
+
+</body>
+</html>
