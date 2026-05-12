@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Developer Tools – Devfusion</title>
+<link rel="icon" type="image/png" href="favicon.png" />
+<style>
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('fonts/inter-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('fonts/inter-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0f1117;
+    --ink-mid: #3a3d47;
+    --ink-muted: #7a7f8e;
+    --surface: #fff;
+    --surface-2: #f8f8f7;
+    --surface-dark: #0f1117;
+    --accent: #ff6600;
+    --accent-hover: #e55a00;
+    --accent-light: #fff3eb;
+    --border: #e8e8e6;
+    --radius: 6px;
+    --radius-lg: 10px;
+    --max: 1120px;
+    --font: 'Inter', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); color: var(--ink); background: var(--surface); font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+  }
+  .nav-inner {
+    max-width: var(--max); margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 68px;
+  }
+  .nav-logo { text-decoration: none; display: flex; align-items: center; }
+  .nav-logo img { height: 36px; width: auto; display: block; }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--ink-mid); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.15s; }
+  .nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--ink); }
+  .nav-links a[aria-current="page"] { color: var(--accent); }
+  .nav-cta {
+    background: var(--accent); color: #fff;
+    padding: 9px 22px; border-radius: var(--radius);
+    font-size: 14px; font-weight: 500; text-decoration: none;
+    transition: background 0.15s;
+  }
+  .nav-cta:hover { background: var(--accent-hover); }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    padding: 5rem 2rem 4rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-header-inner { max-width: var(--max); margin: 0 auto; }
+  .page-label {
+    display: inline-block; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1rem;
+  }
+  .page-header h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 600; line-height: 1.1; letter-spacing: -0.03em;
+    color: var(--ink); margin-bottom: 1rem;
+  }
+  .page-header p {
+    font-size: 1.0625rem; color: var(--ink-mid); font-weight: 300;
+    max-width: 540px; line-height: 1.75;
+  }
+
+  /* ── TOOLS GRID ── */
+  .tools-section { padding: 4rem 2rem 6rem; }
+  .tools-inner { max-width: var(--max); margin: 0 auto; }
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  .tool-card {
+    display: flex; flex-direction: column;
+    padding: 2.25rem 2rem; border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .tool-card:hover { border-color: var(--accent); box-shadow: 0 4px 24px rgba(255,102,0,0.09); }
+  .tool-icon {
+    width: 44px; height: 44px; background: var(--accent-light);
+    border-radius: var(--radius); display: flex; align-items: center; justify-content: center;
+    color: var(--accent); margin-bottom: 1.5rem; flex-shrink: 0;
+  }
+  .tool-icon svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.75; fill: none; }
+  .tool-card h2 { font-size: 1.0625rem; font-weight: 600; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+  .tool-card p { font-size: 0.9rem; color: var(--ink-mid); line-height: 1.7; flex: 1; margin-bottom: 1.5rem; }
+  .tool-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.5rem; }
+  .tool-tag {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.03em;
+    background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--ink-muted); padding: 3px 9px; border-radius: 4px;
+  }
+  .tool-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 600; color: var(--accent);
+    text-decoration: none; transition: gap 0.15s;
+    margin-top: auto;
+  }
+  .tool-link:hover { gap: 10px; }
+
+  /* ── FOOTER ── */
+  footer { background: #080a10; color: rgba(255,255,255,0.3); padding: 2rem; text-align: center; font-size: 13px; }
+  footer a { color: rgba(255,255,255,0.45); text-decoration: none; }
+  footer a:hover { color: rgba(255,255,255,0.7); }
+
+  /* ── SCROLL ANIMATIONS ── */
+  .fade-up { opacity: 0; transform: translateY(28px); transition: opacity 0.65s ease, transform 0.65s ease; }
+  .fade-up.is-visible { opacity: 1; transform: none; }
+  .fade-up.delay-1 { transition-delay: 0.1s; }
+  .fade-up.delay-2 { transition-delay: 0.2s; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .tools-grid { grid-template-columns: 1fr; }
+    .nav-links, .nav-cta { display: none; }
+    .page-header { padding: 3.5rem 1.25rem 3rem; }
+    .tools-section { padding: 3rem 1.25rem 4rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="index.html"><img src="df_logo.png" alt="Devfusion" /></a>
+    <ul class="nav-links">
+      <li><a href="index.html#services">Services</a></li>
+      <li><a href="index.html#expertise">Expertise</a></li>
+      <li><a href="index.html#projects">Projects</a></li>
+      <li><a href="tools.html" aria-current="page">Tools</a></li>
+      <li><a href="index.html#about">About</a></li>
+    </ul>
+    <a class="nav-cta" href="index.html#contact">Get in touch</a>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div class="page-header-inner">
+    <div class="page-label fade-up">Free to use</div>
+    <h1 class="fade-up delay-1">Developer Tools</h1>
+    <p class="fade-up delay-2">Useful utilities we've built and made available for free. More added as we go.</p>
+  </div>
+</header>
+
+<!-- TOOLS -->
+<section class="tools-section">
+  <div class="tools-inner">
+    <div class="tools-grid">
+
+      <div class="tool-card fade-up">
+        <div class="tool-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><path d="M9 13h2m4 0h-2m-2 0v4"/><path d="M9 17h6"/></svg>
+        </div>
+        <h2>XSD Schema Explorer</h2>
+        <p>Upload one or more XSD files and explore their structure as an interactive tree. Handles <code>xsd:import</code> and <code>$ref</code> resolution across multiple related schemas — click any node to inspect its full definition.</p>
+        <div class="tool-tags">
+          <span class="tool-tag">XML</span>
+          <span class="tool-tag">XSD</span>
+          <span class="tool-tag">Schema</span>
+          <span class="tool-tag">Multi-file</span>
+        </div>
+        <a class="tool-link" href="https://schematools.devfusion.net/xsd_schema_explorer.html" target="_blank" rel="noopener">
+          Open tool →
+        </a>
+      </div>
+
+      <div class="tool-card fade-up delay-1">
+        <div class="tool-icon">
+          <svg viewBox="0 0 24 24"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1"/><path d="M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1"/></svg>
+        </div>
+        <h2>JSON Schema Explorer</h2>
+        <p>Drag and drop a JSON Schema file to visualise its full structure as an interactive tree. Resolves <code>$ref</code> references throughout, with expand/collapse controls and a light/dark theme toggle.</p>
+        <div class="tool-tags">
+          <span class="tool-tag">JSON</span>
+          <span class="tool-tag">JSON Schema</span>
+          <span class="tool-tag">$ref resolution</span>
+          <span class="tool-tag">Drag &amp; drop</span>
+        </div>
+        <a class="tool-link" href="https://schematools.devfusion.net/json_schema_explorer.html" target="_blank" rel="noopener">
+          Open tool →
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>&copy; 2025 Devfusion Ltd · The Code Hub, Offenham, Worcestershire · <a href="mailto:enquiries@devfusion.net">enquiries@devfusion.net</a></p>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-up').forEach(function(el) {
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
