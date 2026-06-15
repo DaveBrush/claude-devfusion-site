@@ -122,58 +122,88 @@
   .t-b { background: var(--q-blue); }
   .t-p { background: var(--q-purple); }
 
-  .header-actions {
+  /* ── Burger menu ── */
+  .burger {
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.8);
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius);
+    cursor: pointer;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    gap: 4px;
+    flex-shrink: 0;
+    transition: border-color 0.15s;
   }
 
-  .theme-btn {
+  .burger:hover { border-color: rgba(255,255,255,0.5); }
+  .quirkle-theme .burger { border-color: rgba(248,194,0,0.35); color: var(--q-yellow); }
+  .quirkle-theme .burger:hover { border-color: var(--q-yellow); }
+
+  .burger span {
+    display: block;
+    width: 16px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+
+  .burger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .burger.open span:nth-child(2) { opacity: 0; }
+  .burger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  .menu-wrap {
+    position: relative;
+  }
+
+  .dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #1c1c24;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius-lg);
+    min-width: 180px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    overflow: hidden;
+    z-index: 100;
+  }
+
+  .quirkle-theme .dropdown {
+    background: #150e30;
+    border-color: rgba(248,194,0,0.2);
+  }
+
+  .dropdown.open { display: block; }
+
+  .dropdown button {
+    display: block;
+    width: 100%;
+    padding: 0.7rem 1rem;
     background: transparent;
-    border: 1.5px solid rgba(255,255,255,0.2);
-    color: rgba(255,255,255,0.65);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.8);
     font-family: inherit;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 500;
-    padding: 0.3rem 0.7rem;
-    border-radius: var(--radius);
+    text-align: left;
     cursor: pointer;
-    transition: border-color 0.15s, color 0.15s;
-    white-space: nowrap;
+    transition: background 0.12s, color 0.12s;
   }
 
-  .theme-btn:hover {
-    border-color: rgba(255,255,255,0.45);
-    color: #fff;
-  }
+  .dropdown button:last-child { border-bottom: none; }
+  .dropdown button:hover { background: rgba(255,255,255,0.07); color: #fff; }
 
-  .quirkle-theme .theme-btn {
-    border-color: rgba(248,194,0,0.4);
-    color: var(--q-yellow);
-  }
+  .quirkle-theme .dropdown button:hover { background: rgba(248,194,0,0.08); color: var(--q-yellow); }
 
-  .quirkle-theme .theme-btn:hover {
-    border-color: var(--q-yellow);
-  }
-
-  .reset-btn {
-    background: transparent;
-    border: 1.5px solid rgba(255,255,255,0.2);
-    color: rgba(255,255,255,0.65);
-    font-family: inherit;
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.3rem 0.7rem;
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: border-color 0.15s, color 0.15s;
-    white-space: nowrap;
-  }
-
-  .reset-btn:hover {
-    border-color: rgba(255,255,255,0.45);
-    color: #fff;
-  }
+  .dropdown button.danger:hover { background: rgba(220,38,38,0.12); color: #f87171; }
 
   /* ── Main ── */
   main {
@@ -520,9 +550,14 @@
     <div class="tile t-b"></div>
     <div class="tile t-p"></div>
   </div>
-  <div class="header-actions">
-    <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()">Quirkle theme</button>
-    <button class="reset-btn" onclick="resetGame()">New Game</button>
+  <div class="menu-wrap">
+    <button class="burger" id="burger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="dropdown" id="dropdown">
+      <button id="theme-toggle" onclick="toggleTheme(); closeMenu()">Switch to Quirkle theme</button>
+      <button class="danger" onclick="resetGame(); closeMenu()">New Game</button>
+    </div>
   </div>
 </header>
 
@@ -590,13 +625,31 @@
   const log = [];
   let turnCount = 0;
 
+  // ── Menu ──
+  const burgerEl = document.getElementById('burger');
+  const dropdownEl = document.getElementById('dropdown');
+
+  function toggleMenu() {
+    const open = dropdownEl.classList.toggle('open');
+    burgerEl.classList.toggle('open', open);
+  }
+
+  function closeMenu() {
+    dropdownEl.classList.remove('open');
+    burgerEl.classList.remove('open');
+  }
+
+  document.addEventListener('click', e => {
+    if (!burgerEl.contains(e.target) && !dropdownEl.contains(e.target)) closeMenu();
+  });
+
   // ── Theme ──
   const THEME_KEY = 'quirkle-theme';
-  const btn = document.getElementById('theme-toggle');
+  const themeToggleBtn = document.getElementById('theme-toggle');
 
   function applyTheme(isQuirkle) {
     document.body.classList.toggle('quirkle-theme', isQuirkle);
-    btn.textContent = isQuirkle ? 'Devfusion theme' : 'Quirkle theme';
+    themeToggleBtn.textContent = isQuirkle ? 'Switch to Devfusion theme' : 'Switch to Quirkle theme';
     localStorage.setItem(THEME_KEY, isQuirkle ? '1' : '0');
   }
 
