@@ -66,7 +66,8 @@
   body {
     background: var(--surface-2);
     color: var(--ink);
-    min-height: 100dvh;
+    height: 100dvh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     transition: background 0.25s, color 0.25s;
@@ -199,6 +200,8 @@
 
   /* ── Main ── */
   main {
+    flex: 1;
+    min-height: 0;
     padding: 0.75rem 0.75rem 2.5rem;
     max-width: var(--max);
     margin: 0 auto;
@@ -206,6 +209,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    overflow-y: auto;
   }
 
   /* ── Player grid ── */
@@ -213,10 +217,11 @@
     display: grid;
     gap: 0.6rem;
     grid-template-columns: 1fr;
-    align-items: start;
+    flex: 1;
+    min-height: 0;
   }
 
-  /* 3–4 players: 2-column grid, scrolls naturally */
+  /* 3–4 players: 2-column grid */
   .players.count-3,
   .players.count-4 { grid-template-columns: 1fr 1fr; }
 
@@ -228,9 +233,10 @@
     padding: 0.75rem 0.7rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    justify-content: space-between;
     transition: border-color 0.2s, background 0.25s, box-shadow 0.2s;
     min-width: 0;
+    min-height: 0;
     overflow: hidden;
   }
 
@@ -310,17 +316,18 @@
     line-height: 1;
     color: var(--ink);
     letter-spacing: -0.03em;
-    padding: 0.6rem 0;
-    /* Big by default for 1–2 players */
-    font-size: clamp(4.5rem, 18vw, 7rem);
+    font-size: clamp(4rem, 18vw, 7rem);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: color 0.2s;
   }
 
-  /* 3–4 players: half-width cards, scale score proportionally but keep it prominent */
+  /* 3–4 players: half-width cards */
   .players.count-3 .score-display,
   .players.count-4 .score-display {
     font-size: clamp(2.5rem, 11vw, 4rem);
-    padding: 0.4rem 0;
   }
 
   .player-card.leading .score-display { color: var(--accent); }
