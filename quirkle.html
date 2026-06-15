@@ -199,7 +199,7 @@
 
   /* ── Main ── */
   main {
-    padding: 0.75rem 0.75rem 1rem;
+    padding: 0.75rem 0.75rem 4rem; /* bottom pad clears the history sheet handle */
     max-width: var(--max);
     margin: 0 auto;
     width: 100%;
@@ -471,34 +471,84 @@
   .add-player-btn:hover { border-color: var(--accent); color: var(--accent); }
   .add-player-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
 
-  /* ── History (hidden when 3+ players) ── */
-  .history {
+  /* ── History bottom sheet ── */
+  .history-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: var(--max);
+    margin: 0 auto;
     background: var(--surface);
     border: 1.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    flex-shrink: 0;
+    border-bottom: none;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
     transition: background 0.25s, border-color 0.25s;
+    z-index: 50;
   }
 
-  .history.hidden { display: none; }
+  .quirkle-theme .history-sheet {
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+  }
 
-  .history-header {
-    padding: 0.55rem 1rem;
-    border-bottom: 1.5px solid var(--border);
+  .history-toggle {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0.65rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-family: inherit;
+    border-bottom: 1.5px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  .history-sheet.open .history-toggle {
+    border-bottom-color: var(--border);
+  }
+
+  .history-toggle-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .history-toggle-label {
     font-size: 0.72rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--ink-muted);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  }
+
+  .history-chevron {
+    display: block;
+    width: 16px;
+    height: 16px;
+    color: var(--ink-muted);
+    transition: transform 0.25s ease;
+  }
+
+  .history-sheet.open .history-chevron {
+    transform: rotate(180deg);
+  }
+
+  .history-body {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+  }
+
+  .history-sheet.open .history-body {
+    max-height: 45dvh;
   }
 
   .history-list {
     list-style: none;
-    max-height: 140px;
+    max-height: calc(45dvh - 3rem);
     overflow-y: auto;
   }
 
@@ -591,15 +641,22 @@
   <div class="add-player-bar">
     <button class="add-player-btn" id="add-player-btn" onclick="addPlayer()">+ Add player</button>
   </div>
+</main>
 
-  <div class="history" id="history">
-    <div class="history-header">
-      <span>Turn history</span>
-      <button class="undo-link" onclick="undoLast()">Undo last</button>
+<div class="history-sheet" id="history-sheet">
+  <button class="history-toggle" onclick="toggleHistory()" aria-expanded="false" id="history-toggle-btn">
+    <div class="history-toggle-left">
+      <svg class="history-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="3 6 8 11 13 6"/>
+      </svg>
+      <span class="history-toggle-label">Turn history</span>
     </div>
+    <button class="undo-link" onclick="event.stopPropagation(); undoLast()">Undo last</button>
+  </button>
+  <div class="history-body">
     <ul class="history-list" id="history-list"></ul>
   </div>
-</main>
+</div>
 
 <script>
   // ── State ──
@@ -687,7 +744,7 @@
     document.getElementById('turn-' + player).textContent = '0';
     document.getElementById('score-' + player).textContent = scores[player];
     updateLeader();
-    if (playerCount <= 2) addHistoryItem(log[log.length - 1]);
+    addHistoryItem(log[log.length - 1]);
   }
 
   function updateLeader() {
@@ -728,6 +785,14 @@
     turnCount = 0; log.length = 0;
     document.getElementById('history-list').innerHTML = '';
     renderPlayers();
+  }
+
+  // ── History sheet ──
+  function toggleHistory() {
+    const sheet = document.getElementById('history-sheet');
+    const btn = document.getElementById('history-toggle-btn');
+    const open = sheet.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
   }
 
   // ── Menu ──
