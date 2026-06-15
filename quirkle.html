@@ -212,12 +212,13 @@
   .players {
     display: grid;
     gap: 0.6rem;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     align-items: start;
   }
 
-  /* Single player: full width */
-  .players.count-1 { grid-template-columns: 1fr; }
+  /* 3–4 players: 2-column grid, scrolls naturally */
+  .players.count-3,
+  .players.count-4 { grid-template-columns: 1fr 1fr; }
 
   /* ── Player card ── */
   .player-card {
@@ -315,11 +316,11 @@
     transition: color 0.2s;
   }
 
-  /* Compact score for 3–4 players */
+  /* 3–4 players: half-width cards, scale score proportionally but keep it prominent */
   .players.count-3 .score-display,
   .players.count-4 .score-display {
-    font-size: clamp(2.25rem, 9vw, 3rem);
-    padding: 0.25rem 0;
+    font-size: clamp(2.5rem, 11vw, 4rem);
+    padding: 0.4rem 0;
   }
 
   .player-card.leading .score-display { color: var(--accent); }
@@ -336,9 +337,9 @@
     text-align: center;
   }
 
-  /* Hide label on compact to save space */
+  /* Hide label only when cards are very narrow (3–4 player half-width) */
   .players.count-3 .turn-label,
-  .players.count-4 .turn-label { display: none; }
+  .players.count-4 .turn-label { font-size: 0.55rem; }
 
   .turn-adjuster {
     display: flex;
@@ -383,9 +384,8 @@
     gap: 0.4rem;
   }
 
-  /* Stack vertically on 2-player, side-by-side on 3-4 */
-  .players.count-1 .action-btns,
-  .players.count-2 .action-btns { flex-direction: column; }
+  /* Always stack buttons vertically — matches 2-player style */
+  .action-btns { flex-direction: column; }
 
   .add-btn {
     flex: 1;
@@ -444,7 +444,7 @@
     padding: 0.05rem 0.25rem;
   }
 
-  /* Hide bonus tag in compact mode to save width */
+  /* Hide bonus tag text in half-width cards — button label is enough */
   .players.count-3 .bonus-tag,
   .players.count-4 .bonus-tag { display: none; }
 
