@@ -25,6 +25,7 @@
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  /* ── Devfusion theme (default) ── */
   :root {
     --ink: #0f1117;
     --ink-mid: #3a3d47;
@@ -42,54 +43,142 @@
     font-family: 'Inter', system-ui, sans-serif;
   }
 
+  /* ── Quirkle theme overrides ── */
+  body.quirkle-theme {
+    --ink: #f0eeff;
+    --ink-mid: rgba(240,238,255,0.8);
+    --ink-muted: rgba(240,238,255,0.45);
+    --surface: #1e1540;
+    --surface-2: #150e30;
+    --surface-dark: #0d0820;
+    --accent: #f8c200;
+    --accent-hover: #e0af00;
+    --accent-light: rgba(248,194,0,0.12);
+    --border: rgba(255,255,255,0.1);
+    --q-red: #e63329;
+    --q-orange: #f47920;
+    --q-yellow: #f8c200;
+    --q-green: #009640;
+    --q-blue: #005bac;
+    --q-purple: #7b2d8b;
+  }
+
   body {
     background: var(--surface-2);
     color: var(--ink);
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
+    transition: background 0.25s, color 0.25s;
   }
 
+  /* ── Header ── */
   header {
     background: var(--surface-dark);
-    padding: 1rem 1.5rem;
+    padding: 0.85rem 1.25rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.75rem;
+    transition: background 0.25s;
+  }
+
+  .quirkle-theme header {
+    background: #0d0820;
+    border-bottom: 3px solid transparent;
+    border-image: linear-gradient(90deg,
+      var(--q-red), var(--q-orange), var(--q-yellow),
+      var(--q-green), var(--q-blue), var(--q-purple)) 1;
   }
 
   header h1 {
     color: #fff;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 600;
     letter-spacing: -0.01em;
+    white-space: nowrap;
   }
 
-  header h1 span {
-    color: var(--accent);
+  header h1 span { color: var(--accent); }
+
+  /* Tile row shown only in Quirkle theme */
+  .tile-row {
+    display: none;
+    gap: 4px;
+  }
+
+  .quirkle-theme .tile-row { display: flex; }
+
+  .tile {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+  }
+
+  .t-r { background: var(--q-red); }
+  .t-o { background: var(--q-orange); }
+  .t-y { background: var(--q-yellow); }
+  .t-g { background: var(--q-green); }
+  .t-b { background: var(--q-blue); }
+  .t-p { background: var(--q-purple); }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .theme-btn {
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.65);
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+
+  .theme-btn:hover {
+    border-color: rgba(255,255,255,0.45);
+    color: #fff;
+  }
+
+  .quirkle-theme .theme-btn {
+    border-color: rgba(248,194,0,0.4);
+    color: var(--q-yellow);
+  }
+
+  .quirkle-theme .theme-btn:hover {
+    border-color: var(--q-yellow);
   }
 
   .reset-btn {
     background: transparent;
-    border: 1.5px solid rgba(255,255,255,0.25);
-    color: rgba(255,255,255,0.7);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.65);
     font-family: inherit;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 500;
-    padding: 0.35rem 0.85rem;
+    padding: 0.3rem 0.7rem;
     border-radius: var(--radius);
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s;
+    white-space: nowrap;
   }
 
   .reset-btn:hover {
-    border-color: rgba(255,255,255,0.5);
+    border-color: rgba(255,255,255,0.45);
     color: #fff;
   }
 
+  /* ── Main ── */
   main {
     flex: 1;
-    padding: 1.5rem 1rem 2rem;
+    padding: 1.25rem 1rem 2rem;
     max-width: var(--max);
     margin: 0 auto;
     width: 100%;
@@ -101,20 +190,28 @@
     gap: 1rem;
   }
 
+  /* ── Player cards ── */
   .player-card {
     background: var(--surface);
     border: 1.5px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 1.25rem 1rem 1.25rem;
+    padding: 1.25rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, background 0.25s, box-shadow 0.2s;
   }
 
   .player-card.leading {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  /* Quirkle theme: leading card gets a colourful top strip */
+  .quirkle-theme .player-card.leading {
+    border-color: var(--q-yellow);
+    box-shadow: 0 0 0 3px rgba(248,194,0,0.12),
+                0 0 24px rgba(248,194,0,0.08);
   }
 
   .name-row {
@@ -136,12 +233,17 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
   }
 
   .player-card.leading .player-number {
     background: var(--accent);
     border-color: var(--accent);
-    color: #fff;
+    color: #000;
+  }
+
+  .quirkle-theme .player-card.leading .player-number {
+    color: #000;
   }
 
   .name-input {
@@ -154,6 +256,7 @@
     color: var(--ink);
     background: transparent;
     min-width: 0;
+    transition: color 0.25s;
   }
 
   .name-input::placeholder {
@@ -169,12 +272,14 @@
     color: var(--ink);
     letter-spacing: -0.03em;
     padding: 0.25rem 0;
+    transition: color 0.2s;
   }
 
   .player-card.leading .score-display {
     color: var(--accent);
   }
 
+  /* ── Turn adjuster ── */
   .turn-section {
     display: flex;
     flex-direction: column;
@@ -216,14 +321,8 @@
     font-family: inherit;
   }
 
-  .adj-btn:hover {
-    background: var(--border);
-  }
-
-  .adj-btn:active {
-    background: var(--ink-muted);
-    color: #fff;
-  }
+  .adj-btn:hover { background: var(--border); }
+  .adj-btn:active { background: var(--ink-muted); color: #fff; }
 
   .turn-value {
     font-size: 1.75rem;
@@ -234,6 +333,7 @@
     letter-spacing: -0.02em;
   }
 
+  /* ── Action buttons ── */
   .action-btns {
     display: flex;
     flex-direction: column;
@@ -254,9 +354,7 @@
     transition: background 0.12s, border-color 0.12s;
   }
 
-  .add-btn:hover {
-    background: var(--border);
-  }
+  .add-btn:hover { background: var(--border); }
 
   .quirkle-btn {
     width: 100%;
@@ -277,29 +375,41 @@
     gap: 0.4rem;
   }
 
-  .quirkle-btn:hover {
-    background: var(--accent-hover);
+  .quirkle-btn:hover { background: var(--accent-hover); }
+  .quirkle-btn:active { transform: scale(0.97); }
+
+  /* Quirkle theme: rainbow gradient button */
+  .quirkle-theme .quirkle-btn {
+    background: linear-gradient(90deg,
+      var(--q-red), var(--q-orange), var(--q-yellow),
+      var(--q-green), var(--q-blue), var(--q-purple));
+    color: #fff;
   }
 
-  .quirkle-btn:active {
-    transform: scale(0.97);
+  .quirkle-theme .quirkle-btn:hover {
+    filter: brightness(1.12);
+    background: linear-gradient(90deg,
+      var(--q-red), var(--q-orange), var(--q-yellow),
+      var(--q-green), var(--q-blue), var(--q-purple));
   }
 
   .quirkle-btn .bonus-tag {
     font-size: 0.7rem;
     font-weight: 500;
     opacity: 0.85;
-    background: rgba(0,0,0,0.15);
+    background: rgba(0,0,0,0.18);
     border-radius: 4px;
     padding: 0.1rem 0.35rem;
   }
 
+  /* ── History ── */
   .history {
     background: var(--surface);
     border: 1.5px solid var(--border);
     border-radius: var(--radius-lg);
     margin-top: 1rem;
     overflow: hidden;
+    transition: background 0.25s, border-color 0.25s;
   }
 
   .history-header {
@@ -342,7 +452,7 @@
 
   @keyframes slide-in {
     from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   .history-item:last-child { border-bottom: none; }
@@ -359,23 +469,24 @@
     color: var(--ink-mid);
   }
 
-  .history-points {
-    font-weight: 600;
-    color: var(--ink);
-  }
-
+  .history-points { font-weight: 600; }
   .history-points.positive { color: #16a34a; }
-  .history-points.negative { color: #dc2626; }
+  .quirkle-theme .history-points.positive { color: #4ade80; }
 
   .history-badge {
     font-size: 0.65rem;
     font-weight: 600;
     background: var(--accent);
-    color: #fff;
+    color: #000;
     padding: 0.1rem 0.4rem;
     border-radius: 4px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+  }
+
+  .quirkle-theme .history-badge {
+    background: linear-gradient(90deg, var(--q-red), var(--q-purple));
+    color: #fff;
   }
 
   .undo-link {
@@ -391,20 +502,6 @@
 
   .undo-link:hover { color: var(--ink); }
 
-  /* winner banner */
-  .winner-banner {
-    display: none;
-    background: var(--accent);
-    color: #fff;
-    text-align: center;
-    padding: 1rem;
-    font-size: 1rem;
-    font-weight: 600;
-    margin-top: 1rem;
-    border-radius: var(--radius-lg);
-    letter-spacing: -0.01em;
-  }
-
   @media (max-width: 540px) {
     .players { grid-template-columns: 1fr; }
     .score-display { font-size: 3.25rem; }
@@ -415,7 +512,18 @@
 
 <header>
   <h1>Quirkle <span>Score Tracker</span></h1>
-  <button class="reset-btn" onclick="resetGame()">New Game</button>
+  <div class="tile-row" aria-hidden="true">
+    <div class="tile t-r"></div>
+    <div class="tile t-o"></div>
+    <div class="tile t-y"></div>
+    <div class="tile t-g"></div>
+    <div class="tile t-b"></div>
+    <div class="tile t-p"></div>
+  </div>
+  <div class="header-actions">
+    <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()">Quirkle theme</button>
+    <button class="reset-btn" onclick="resetGame()">New Game</button>
+  </div>
 </header>
 
 <main>
@@ -482,6 +590,24 @@
   const log = [];
   let turnCount = 0;
 
+  // ── Theme ──
+  const THEME_KEY = 'quirkle-theme';
+  const btn = document.getElementById('theme-toggle');
+
+  function applyTheme(isQuirkle) {
+    document.body.classList.toggle('quirkle-theme', isQuirkle);
+    btn.textContent = isQuirkle ? 'Devfusion theme' : 'Quirkle theme';
+    localStorage.setItem(THEME_KEY, isQuirkle ? '1' : '0');
+  }
+
+  function toggleTheme() {
+    applyTheme(!document.body.classList.contains('quirkle-theme'));
+  }
+
+  // Restore saved theme
+  if (localStorage.getItem(THEME_KEY) === '1') applyTheme(true);
+
+  // ── Scoring ──
   function getPlayerName(i) {
     return document.getElementById('name-' + i).value.trim() || ('Player ' + (i + 1));
   }
@@ -497,8 +623,7 @@
 
     scores[player] += points;
     turnCount++;
-
-    log.push({ player, points, isQuirkle, turn: turnCount, scoreBefore: scores[player] - points });
+    log.push({ player, points, isQuirkle, turn: turnCount });
     turns[player] = 0;
 
     document.getElementById('turn-' + player).textContent = '0';
@@ -510,7 +635,7 @@
 
   function updateLeader() {
     const cards = document.querySelectorAll('.player-card');
-    cards.forEach((c, i) => c.classList.remove('leading'));
+    cards.forEach(c => c.classList.remove('leading'));
     if (scores[0] > scores[1]) cards[0].classList.add('leading');
     else if (scores[1] > scores[0]) cards[1].classList.add('leading');
   }
@@ -519,7 +644,6 @@
     const list = document.getElementById('history-list');
     const li = document.createElement('li');
     li.className = 'history-item';
-    li.dataset.index = log.length - 1;
     li.innerHTML =
       '<span class="history-turn">' + entry.turn + '</span>' +
       '<span class="history-name">' + getPlayerName(entry.player) + '</span>' +
@@ -533,12 +657,9 @@
     const entry = log.pop();
     scores[entry.player] -= entry.points;
     turnCount--;
-
     document.getElementById('score-' + entry.player).textContent = scores[entry.player];
     updateLeader();
-
-    const list = document.getElementById('history-list');
-    const items = list.querySelectorAll('.history-item');
+    const items = document.getElementById('history-list').querySelectorAll('.history-item');
     if (items.length > 0) items[0].remove();
   }
 
@@ -548,13 +669,11 @@
     turns[0] = 0; turns[1] = 0;
     turnCount = 0;
     log.length = 0;
-
     [0, 1].forEach(i => {
       document.getElementById('score-' + i).textContent = '0';
       document.getElementById('turn-' + i).textContent = '0';
       document.getElementById('card-' + i).classList.remove('leading');
     });
-
     document.getElementById('history-list').innerHTML = '';
   }
 </script>
