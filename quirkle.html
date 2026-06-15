@@ -199,7 +199,7 @@
 
   /* ── Main ── */
   main {
-    padding: 0.75rem 0.75rem 4rem; /* bottom pad clears the history sheet handle */
+    padding: 0.75rem 0.75rem 3rem;
     max-width: var(--max);
     margin: 0 auto;
     width: 100%;
@@ -499,7 +499,7 @@
     padding: 0.65rem 1rem;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 0.5rem;
     cursor: pointer;
     font-family: inherit;
     border-bottom: 1.5px solid transparent;
@@ -510,18 +510,21 @@
     border-bottom-color: var(--border);
   }
 
-  .history-toggle-left {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
   .history-toggle-label {
     font-size: 0.72rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--ink-muted);
+    flex: 1;
+    text-align: left;
+  }
+
+  .history-actions {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
   }
 
   .history-chevron {
@@ -645,15 +648,15 @@
 
 <div class="history-sheet" id="history-sheet">
   <button class="history-toggle" onclick="toggleHistory()" aria-expanded="false" id="history-toggle-btn">
-    <div class="history-toggle-left">
-      <svg class="history-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="3 6 8 11 13 6"/>
-      </svg>
-      <span class="history-toggle-label">Turn history</span>
-    </div>
-    <button class="undo-link" onclick="event.stopPropagation(); undoLast()">Undo last</button>
+    <svg class="history-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="3 6 8 11 13 6"/>
+    </svg>
+    <span class="history-toggle-label">Turn history</span>
   </button>
   <div class="history-body">
+    <div class="history-actions">
+      <button class="undo-link" onclick="undoLast()">Undo last</button>
+    </div>
     <ul class="history-list" id="history-list"></ul>
   </div>
 </div>
@@ -703,8 +706,7 @@
     }
 
     updateLeader();
-    document.getElementById('add-player-btn').disabled = playerCount >= MAX_PLAYERS;
-    document.getElementById('history').classList.toggle('hidden', playerCount > 2);
+    document.getElementById('add-player-bar').style.display = playerCount >= MAX_PLAYERS ? 'none' : 'flex';
   }
 
   function addPlayer() {
