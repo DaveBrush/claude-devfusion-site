@@ -232,7 +232,7 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 // ═══════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════
-const VERSION = '1.0.8';
+const VERSION = '1.0.9';
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['H','D','C','S'];
 const SYM   = {H:'♥',D:'♦',C:'♣',S:'♠'};
@@ -968,10 +968,17 @@ function hostResetPile() {
     return;
   }
 
-  // non-dealer leads new pile
-  const ndHost = !gs.iAmDealer;
-  gs.whoseTurn = ndHost ? 'host' : 'guest';
-  gs.myTurn    = (gs.whoseTurn==='host');
+  // Non-dealer leads new pile, but fall back to dealer if non-dealer has no cards
+  const ndIsHost   = !gs.iAmDealer;
+  const ndHasCards = ndIsHost ? gs.myHand.length > 0 : gs.guestHand.length > 0;
+  const dHasCards  = ndIsHost ? gs.guestHand.length > 0 : gs.myHand.length > 0;
+  let leader;
+  if (ndHasCards)      leader = ndIsHost ? 'host' : 'guest';
+  else if (dHasCards)  leader = ndIsHost ? 'guest' : 'host';
+  else { setTimeout(()=>hostStartCounting(), 400); return; }
+
+  gs.whoseTurn = leader;
+  gs.myTurn    = (leader === 'host');
   renderHand();
   if (gs.myTurn) setStatus('Your turn — play a card');
   else { setStatus("Opponent's turn"); send({type:'your-turn'}); }
