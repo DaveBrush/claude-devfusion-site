@@ -14,6 +14,7 @@ A static website for Devfusion, a software consultancy based in Offenham, Worces
 ## Current file structure
 - `index.html` — main marketing site, single scroll page
 - `tools.html` — developer tools directory page
+- `cribbage.html` — self-contained two-player cribbage game (P2P via PeerJS/WebRTC); no server required, share a room code between two devices to play
 - `df_logo.png` — logo (always use this)
 - `favicon.png` — site favicon (300×300 PNG)
 - `fonts/inter-latin.woff2` — Inter variable font, Latin subset (weights 300–600)
