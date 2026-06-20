@@ -232,7 +232,7 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 // ═══════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════
-const VERSION = '1.0.6';
+const VERSION = '1.0.7';
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['H','D','C','S'];
 const SYM   = {H:'♥',D:'♦',C:'♣',S:'♠'};
@@ -908,7 +908,7 @@ function hostAdvancePeg() {
       send({type:'opp-go'});
       setStatus('You said Go — opponent plays');
     }
-    if (gCan) { gs.whoseTurn='guest'; gs.myTurn=false; send({type:'your-turn'}); }
+    if (gCan) { gs.whoseTurn='guest'; gs.myTurn=false; renderHand(); send({type:'your-turn'}); }
     return;
   }
 
@@ -920,15 +920,18 @@ function hostAdvancePeg() {
     }
     gs.whoseTurn='host'; gs.myTurn=true;
     setStatus('Opponent said Go — your turn');
+    renderHand();
     return;
   }
 
   if (gs.whoseTurn==='guest') {
     gs.whoseTurn='host'; gs.myTurn=true;
     setStatus('Your turn — play a card');
+    renderHand();
   } else {
     gs.whoseTurn='guest'; gs.myTurn=false;
     setStatus("Opponent's turn");
+    renderHand();
     send({type:'your-turn'});
   }
 }
@@ -941,6 +944,7 @@ function hostHandleGo(fromGuest) {
     if (canPlay(gs.myHand, gs.pileValue)) {
       gs.whoseTurn='host'; gs.myTurn=true;
       setStatus('Opponent said Go — your turn');
+      renderHand();
     } else {
       hostAdvancePeg();
     }
@@ -969,6 +973,7 @@ function hostResetPile() {
   const ndHost = !gs.iAmDealer;
   gs.whoseTurn = ndHost ? 'host' : 'guest';
   gs.myTurn    = (gs.whoseTurn==='host');
+  renderHand();
   if (gs.myTurn) setStatus('Your turn — play a card');
   else { setStatus("Opponent's turn"); send({type:'your-turn'}); }
 }
