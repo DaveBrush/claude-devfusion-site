@@ -362,12 +362,19 @@ async function createGame() {
   try {
     myPeer = await openPeer('crb-'+code);
     myPeer.on('connection', c => {
-      setupConn(c);
-      isHost = true;
-      gs.iAmDealer = true;
-      gs.myScore = 0; gs.oppScore = 0;
-      showScreen('game');
-      setTimeout(()=>hostDeal(), 500);
+      // Wait for the WebRTC data channel to be fully open on the host side
+      // before calling setupConn or sending any data. Without this, hostDeal()
+      // fires while the guest's channel is still negotiating ICE candidates and
+      // the 'deal' message is silently dropped, leaving the guest on the join screen.
+      c.on('open', () => {
+        setupConn(c);
+        isHost = true;
+        gs.iAmDealer = true;
+        gs.myScore = 0; gs.oppScore = 0;
+        showScreen('game');
+        setTimeout(()=>hostDeal(), 300);
+      });
+      c.on('error', e => console.error('host conn error', e));
     });
   } catch(e) {
     alert('Could not start game. Check your connection and try again.');
@@ -383,11 +390,13 @@ async function joinGame(code) {
   try {
     myPeer = await openPeer('crb-g-'+Math.random().toString(36).slice(2,7));
     const c = myPeer.connect('crb-'+code, {reliable:true});
+    // Set up the data handler immediately so no messages are missed
+    // even if they arrive very soon after the channel opens
+    setupConn(c);
+    isHost = false;
     let opened = false;
     c.on('open', ()=>{
       opened = true;
-      setupConn(c);
-      isHost = false;
       showScreen('game');
       setStatus('Connected — waiting for cards…');
     });
