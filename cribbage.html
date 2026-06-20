@@ -232,12 +232,31 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 // ═══════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════
-const VERSION = '1.0.3';
+const VERSION = '1.0.4';
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['H','D','C','S'];
 const SYM   = {H:'♥',D:'♦',C:'♣',S:'♠'};
 const RED   = new Set(['H','D']);
 const WIN   = 121;
+
+// ICE servers: multiple STUN servers + TURN relays as fallback for NAT traversal.
+// Without TURN, WebRTC fails when both phones are on different networks (mobile
+// data vs WiFi, or behind strict hotel/carrier NAT).
+const ICE_CFG = {
+  iceServers: [
+    { urls: ['stun:stun.l.google.com:19302',
+             'stun:stun1.l.google.com:19302',
+             'stun:stun2.l.google.com:19302'] },
+    { urls: 'stun:stun.cloudflare.com:3478' },
+    // Open Relay Project — free public TURN relay
+    { urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject', credential: 'openrelayproject' },
+  ]
+};
 
 // ═══════════════════════════════════════════════════════════
 //  DEBUG LOG
@@ -426,12 +445,25 @@ function genCode() {
 function openPeer(id) {
   return new Promise((res,rej) => {
     dbg(`openPeer id=${id}`, 'evt');
-    const p = new Peer(id, {debug:0});
+    const p = new Peer(id, {debug:0, config: ICE_CFG});
     p.on('open', id=>{ dbg(`peer open id=${id}`, 'evt'); res(p); });
     p.on('error', e=>{ dbg(`peer error: ${e.type} ${e.message||''}`, 'err'); rej(e); });
-    p.on('disconnected', ()=>dbg('peer disconnected from server', 'err'));
+    p.on('disconnected', ()=>{ dbg('peer disconnected from signaling server — reconnecting', 'err'); p.reconnect(); });
     setTimeout(()=>rej(new Error('timeout')), 14000);
   });
+}
+
+function _watchICE(c, label) {
+  // Hook into the underlying RTCPeerConnection to log ICE state transitions.
+  // ICE negotiation is what fails when phones can't reach each other directly.
+  const rtc = c.peerConnection;
+  if (!rtc) { dbg(`${label}: no peerConnection yet`, 'evt'); return; }
+  rtc.oniceconnectionstatechange = () =>
+    dbg(`${label} ICE: ${rtc.iceConnectionState}`, 'evt');
+  rtc.onicegatheringstatechange = () =>
+    dbg(`${label} gathering: ${rtc.iceGatheringState}`, 'evt');
+  rtc.onconnectionstatechange = () =>
+    dbg(`${label} conn state: ${rtc.connectionState}`, 'evt');
 }
 
 async function createGame() {
@@ -443,6 +475,7 @@ async function createGame() {
     myPeer = await openPeer('crb-'+code);
     myPeer.on('connection', c => {
       dbg(`incoming connection from ${c.peer}`, 'evt');
+      _watchICE(c, 'host');
       // Wait for the WebRTC data channel to be fully open before sending.
       // The 'connection' event fires before ICE negotiation completes.
       c.on('open', () => {
@@ -473,6 +506,8 @@ async function joinGame(code) {
     myPeer = await openPeer('crb-g-'+Math.random().toString(36).slice(2,7));
     dbg(`connecting to crb-${code}`, 'evt');
     const c = myPeer.connect('crb-'+code, {reliable:true});
+    dbg(`connection object created, watching ICE`, 'evt');
+    _watchICE(c, 'guest');
     // Register data handler immediately — before 'open' — so no messages
     // arriving right at channel-open time are missed
     setupConn(c);
