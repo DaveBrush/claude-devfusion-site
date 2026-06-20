@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Cribbage</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+:root{--accent:#ff6600;--acc2:#e55a00;--bg:#141720;--bg2:#1a1e2a;--bg3:#1e2235;--border:#2a2e40;--muted:#555;--txt:#eee}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);overscroll-behavior:none}
+.screen{display:none;flex-direction:column;align-items:center;min-height:100dvh;padding:28px 20px;gap:14px}
+.screen.active{display:flex}
+.big-icon{font-size:72px;margin-top:30px}
+h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
+.sub{color:#666;font-size:14px;margin-bottom:8px}
+.info{color:#999;font-size:14px;text-align:center;line-height:1.5}
+.note{color:#444;font-size:12px;text-align:center}
+.btn{display:block;width:100%;max-width:280px;padding:13px 20px;border:none;border-radius:6px;font-size:16px;font-weight:600;cursor:pointer;transition:background .15s;text-align:center}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-p{background:var(--accent);color:#fff}
+.btn-p:not(:disabled):active{background:var(--acc2)}
+.btn-s{background:transparent;color:var(--txt);border:2px solid #444}
+.btn-s:not(:disabled):active{border-color:var(--accent);color:var(--accent)}
+.btn-sm{max-width:200px;padding:10px 16px;font-size:14px}
+.code-box{background:var(--accent);color:#fff;font-size:44px;font-weight:800;letter-spacing:10px;padding:18px 24px;border-radius:10px;font-family:monospace}
+.code-input{background:#22263a;border:2px solid #444;border-radius:6px;color:var(--txt);font-size:32px;font-weight:700;letter-spacing:8px;padding:12px 18px;text-align:center;width:100%;max-width:240px;font-family:monospace;text-transform:uppercase}
+.code-input:focus{outline:none;border-color:var(--accent)}
+.code-input::placeholder{color:#333}
+.waiting{display:flex;align-items:center;gap:8px;color:#666;font-size:14px}
+.spinner{width:16px;height:16px;border:2px solid #333;border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.div{width:100%;max-width:280px;border:none;border-top:1px solid #222;margin-top:auto}
+#join-err{color:#ff5555;font-size:14px;min-height:18px;text-align:center}
+
+/* ── GAME ── */
+#screen-game{padding:0;gap:0;background:var(--bg)}
+.scoreboard{display:flex;justify-content:space-between;align-items:center;background:#0f1117;padding:10px 18px;width:100%;border-bottom:1px solid #1e222e}
+.score-block{display:flex;flex-direction:column;align-items:center;gap:2px}
+.score-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.score-num{font-size:30px;font-weight:800;font-family:monospace}
+.dealer-tag{font-size:8px;background:var(--accent);color:#fff;padding:1px 5px;border-radius:3px;font-weight:700;text-transform:uppercase;visibility:hidden}
+.dealer-tag.show{visibility:visible}
+.vs{font-size:11px;color:#2a2e40}
+.statusbar{background:var(--bg2);padding:8px 14px;width:100%;font-size:13px;color:#888;text-align:center;min-height:34px;display:flex;align-items:center;justify-content:center}
+.statusbar.go{color:var(--accent);font-weight:700}
+.statusbar.wait{color:#888}
+.area{padding:10px 14px 6px;width:100%}
+.area-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#444;margin-bottom:6px}
+.cards-row{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;min-height:90px;align-items:flex-end}
+.cards-row::-webkit-scrollbar{display:none}
+.center-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px 14px;width:100%;min-height:90px}
+.pile-sec{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%}
+.pile-meta{display:flex;gap:24px;align-items:baseline}
+.pile-val{font-size:28px;font-weight:800;font-family:monospace}
+.pile-val.hi{color:#ff4444}
+.pile-val.max{color:#44dd44}
+.pile-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#444}
+.pile-cards{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.starter-sec{display:flex;flex-direction:column;align-items:center;gap:4px}
+.action-zone{display:flex;gap:8px;padding:8px 14px 16px;width:100%;flex-wrap:wrap;justify-content:center}
+.action-zone .btn{max-width:160px;flex:1;min-width:100px}
+
+/* ── CARDS ── */
+.card{flex-shrink:0;width:58px;height:84px;border-radius:8px;border:2px solid rgba(255,255,255,.08);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .12s,border-color .12s,opacity .12s;position:relative}
+.card:active{transform:scale(.92)}
+.card-r{font-size:16px;font-weight:800;line-height:1.1}
+.card-s{font-size:21px;line-height:1}
+.card.red .card-r,.card.red .card-s{color:#cc1111}
+.card.black .card-r,.card.black .card-s{color:#111}
+.card.sel{transform:translateY(-10px);border-color:var(--accent);box-shadow:0 4px 14px rgba(255,102,0,.4)}
+.card.sel:active{transform:translateY(-10px) scale(.92)}
+.card.dim{opacity:.35;cursor:default;transform:none!important}
+.card.bk{background:linear-gradient(135deg,#1a3a6b,#0d2344)!important;border-color:rgba(255,255,255,.15)!important;cursor:default}
+.card.bk::after{content:'';width:38px;height:56px;border:1px solid rgba(255,255,255,.2);border-radius:4px}
+.card.sm{width:42px;height:60px}
+.card.sm .card-r{font-size:12px}
+.card.sm .card-s{font-size:14px}
+.card.starter-hi{border-color:var(--accent)!important;border-width:2px}
+
+/* ── OVERLAY ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:100;align-items:center;justify-content:center;padding:16px}
+.overlay.show{display:flex}
+.obox{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:22px 20px;width:100%;max-width:340px}
+.obox h2{font-size:20px;color:var(--accent);margin-bottom:10px;text-align:center}
+.hand-row{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin:12px 0;align-items:flex-end}
+.brow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:14px;color:#ccc}
+.brow:last-child{border:none}
+.btotal{display:flex;justify-content:space-between;padding:8px 0 0;font-size:17px;font-weight:700;color:var(--accent)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--accent);color:var(--txt);padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;z-index:200;white-space:nowrap;pointer-events:none;animation:tin .2s ease,tout .3s ease 1.7s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{to{opacity:0;transform:translateX(-50%) translateY(-8px)}}
+</style>
+</head>
+<body>
+
+<!-- LOBBY -->
+<div id="screen-lobby" class="screen active">
+  <div class="big-icon">🃏</div>
+  <h1>Cribbage</h1>
+  <p class="sub">Two players · Two phones</p>
+  <button class="btn btn-p" id="btn-new">New Game</button>
+  <button class="btn btn-s" id="btn-join">Join Game</button>
+  <hr class="div">
+  <p class="note">Needs internet briefly to connect</p>
+</div>
+
+<!-- HOSTING -->
+<div id="screen-hosting" class="screen">
+  <h1 style="margin-top:20px;font-size:22px">Share this code</h1>
+  <p class="info">Your opponent enters this on their phone</p>
+  <div class="code-box" id="game-code">····</div>
+  <button class="btn btn-s btn-sm" id="btn-copy">Copy Code</button>
+  <div class="waiting"><div class="spinner"></div><span>Waiting for opponent…</span></div>
+  <hr class="div">
+  <button class="btn btn-s btn-sm" id="btn-cancel-host" style="margin-bottom:20px">Cancel</button>
+</div>
+
+<!-- JOINING -->
+<div id="screen-joining" class="screen">
+  <h1 style="margin-top:20px;font-size:22px">Enter code</h1>
+  <p class="info">Type the 4-character code shown on the other phone</p>
+  <input class="code-input" id="join-input" type="text" maxlength="4" placeholder="XXXX"
+         autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+  <button class="btn btn-p" id="btn-connect">Connect</button>
+  <div id="join-err"></div>
+  <hr class="div">
+  <button class="btn btn-s btn-sm" id="btn-cancel-join" style="margin-bottom:20px">Cancel</button>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen">
+  <div class="scoreboard">
+    <div class="score-block">
+      <div class="score-name">Opponent</div>
+      <div class="score-num" id="opp-score">0</div>
+      <div class="dealer-tag" id="opp-dealer">Dealer</div>
+    </div>
+    <div class="vs">vs</div>
+    <div class="score-block">
+      <div class="score-name">You</div>
+      <div class="score-num" id="my-score">0</div>
+      <div class="dealer-tag" id="my-dealer">Dealer</div>
+    </div>
+  </div>
+
+  <div class="statusbar" id="statusbar">Connecting…</div>
+
+  <div class="area">
+    <div class="area-label">Opponent</div>
+    <div class="cards-row" id="opp-cards"></div>
+  </div>
+
+  <div class="center-zone">
+    <div class="starter-sec" id="starter-sec" style="display:none">
+      <div class="area-label">Starter</div>
+      <div id="starter-el"></div>
+    </div>
+    <div class="pile-sec" id="pile-sec" style="display:none">
+      <div class="pile-meta">
+        <div><div class="pile-lbl">Count</div><div class="pile-val" id="pile-val">0</div></div>
+      </div>
+      <div class="pile-cards" id="pile-cards"></div>
+    </div>
+  </div>
+
+  <div class="area">
+    <div class="area-label" id="hand-label">Your hand</div>
+    <div class="cards-row" id="my-hand"></div>
+  </div>
+
+  <div class="action-zone">
+    <button class="btn btn-s" id="btn-go"        style="display:none">Go</button>
+    <button class="btn btn-p" id="btn-send-crib" style="display:none">Send to Crib</button>
+    <button class="btn btn-p" id="btn-continue"  style="display:none">Continue →</button>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="obox">
+    <h2 id="ov-title"></h2>
+    <div class="hand-row" id="ov-hand"></div>
+    <div id="ov-breakdown"></div>
+    <button class="btn btn-p" id="ov-ok" style="margin-top:4px">OK</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════════════════
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const SUITS = ['H','D','C','S'];
+const SYM   = {H:'♥',D:'♦',C:'♣',S:'♠'};
+const RED   = new Set(['H','D']);
+const WIN   = 121;
+
+// ═══════════════════════════════════════════════════════════
+//  CARD UTILS
+// ═══════════════════════════════════════════════════════════
+const cardVal  = c => Math.min(RANKS.indexOf(c.rank) + 1, 10);
+const rankIdx  = c => RANKS.indexOf(c.rank);
+const cardKey  = c => c.rank + c.suit;
+const sameCard = (a, b) => a.rank === b.rank && a.suit === b.suit;
+
+function makeDeck() {
+  return SUITS.flatMap(s => RANKS.map(r => ({rank:r, suit:s})));
+}
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = 0|Math.random()*(i+1);
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SCORING
+// ═══════════════════════════════════════════════════════════
+function scoreFifteens(cards) {
+  let s = 0;
+  for (let m = 1; m < (1<<cards.length); m++) {
+    let t = 0;
+    for (let i = 0; i < cards.length; i++) if (m>>i&1) t += cardVal(cards[i]);
+    if (t === 15) s += 2;
+  }
+  return s;
+}
+
+function scorePairs(cards) {
+  let s = 0;
+  for (let i = 0; i < cards.length; i++)
+    for (let j = i+1; j < cards.length; j++)
+      if (cards[i].rank === cards[j].rank) s += 2;
+  return s;
+}
+
+function scoreRuns(cards) {
+  const g = {};
+  for (const c of cards) g[c.rank] = (g[c.rank]||0)+1;
+  const ur = Object.keys(g).sort((a,b) => rankIdx({rank:a}) - rankIdx({rank:b}));
+  let s = 0, i = 0;
+  while (i < ur.length) {
+    let j = i;
+    while (j+1 < ur.length && rankIdx({rank:ur[j+1]}) === rankIdx({rank:ur[j]})+1) j++;
+    const len = j-i+1;
+    if (len >= 3) { let m=1; for(let k=i;k<=j;k++) m*=g[ur[k]]; s+=len*m; }
+    i = j+1;
+  }
+  return s;
+}
+
+function scoreFlush(hand, starter, isCrib) {
+  const s = hand[0].suit;
+  if (hand.every(c => c.suit===s)) {
+    if (starter.suit===s) return 5;
+    if (!isCrib) return 4;
+  }
+  return 0;
+}
+
+function scoreNobs(hand, starter) {
+  return hand.some(c => c.rank==='J' && c.suit===starter.suit) ? 1 : 0;
+}
+
+function scoreHand(hand, starter, isCrib=false) {
+  const all = [...hand, starter], parts = [];
+  const add = (l,p) => { if(p>0) parts.push({l,p}); };
+  add('Fifteens',   scoreFifteens(all));
+  add('Pairs',      scorePairs(all));
+  add('Runs',       scoreRuns(all));
+  add('Flush',      scoreFlush(hand, starter, isCrib));
+  add('Nobs (J♦/♥/♣/♠ matches starter suit)', scoreNobs(hand, starter));
+  return { total: parts.reduce((s,x)=>s+x.p,0), parts };
+}
+
+function scorePeg(pile) {
+  if (!pile.length) return {pts:0, desc:[]};
+  const tot = pile.reduce((s,c)=>s+cardVal(c),0);
+  let pts = 0;
+  const desc = [];
+  if (tot===15) { pts+=2; desc.push('Fifteen (2)'); }
+  if (tot===31) { pts+=2; desc.push('31 (2)'); }
+  const n = pile.length;
+  if (n >= 2) {
+    let pc = 1;
+    while (pc<n && pile[n-1-pc].rank===pile[n-1].rank) pc++;
+    if (pc===2) { pts+=2;  desc.push('Pair (2)'); }
+    else if (pc===3) { pts+=6;  desc.push('Pair Royal (6)'); }
+    else if (pc===4) { pts+=12; desc.push('Double Pair Royal (12)'); }
+  }
+  for (let len=Math.min(n,7); len>=3; len--) {
+    const end = pile.slice(n-len);
+    const rs = end.map(c=>rankIdx(c)).sort((a,b)=>a-b);
+    if (new Set(rs).size===len && rs.every((r,i)=>i===0||r===rs[i-1]+1)) {
+      pts+=len; desc.push(`Run of ${len} (${len})`); break;
+    }
+  }
+  return {pts, desc};
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let isHost = false, myPeer = null, conn = null;
+
+// shared view (both host & guest maintain this for UI)
+const gs = {
+  phase: 'lobby',
+  myScore: 0, oppScore: 0,
+  iAmDealer: false,
+  myTurn: false,
+  myHand: [],       // current playable hand
+  myFullHand: [],   // all 4 cards (saved before pegging, used for counting)
+  oppCardCount: 0,  // opponent cards remaining (for card-backs)
+  oppPegged: [],    // opponent cards played face-up this hand
+  pile: [],
+  pileValue: 0,
+  starter: null,
+  cribSel: [],      // cards selected for crib discard
+  // host-only
+  guestHand: [],
+  guestFullHand: [],
+  crib: [],
+  deck: [],
+  hostCribDone: false,
+  guestCribDone: false,
+  hostSaidGo: false,
+  guestSaidGo: false,
+  whoseTurn: 'host',
+  lastPlayed: null,    // 'host'|'guest'
+  countStep: 0,        // 0=nondealer,1=dealer,2=crib
+};
+
+// ═══════════════════════════════════════════════════════════
+//  CONNECTION
+// ═══════════════════════════════════════════════════════════
+function genCode() {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:4}, ()=>c[0|Math.random()*c.length]).join('');
+}
+
+function openPeer(id) {
+  return new Promise((res,rej) => {
+    const p = new Peer(id, {debug:0});
+    p.on('open', ()=>res(p));
+    p.on('error', e=>rej(e));
+    setTimeout(()=>rej(new Error('timeout')), 14000);
+  });
+}
+
+async function createGame() {
+  const code = genCode();
+  showScreen('hosting');
+  $('game-code').textContent = code;
+  try {
+    myPeer = await openPeer('crb-'+code);
+    myPeer.on('connection', c => {
+      setupConn(c);
+      isHost = true;
+      gs.iAmDealer = true;
+      gs.myScore = 0; gs.oppScore = 0;
+      showScreen('game');
+      setTimeout(()=>hostDeal(), 500);
+    });
+  } catch(e) {
+    alert('Could not start game. Check your connection and try again.');
+    showScreen('lobby');
+  }
+}
+
+async function joinGame(code) {
+  code = code.toUpperCase().trim();
+  if (code.length !== 4) { $('join-err').textContent='Enter 4 characters'; return; }
+  $('join-err').textContent = 'Connecting…';
+  $('btn-connect').disabled = true;
+  try {
+    myPeer = await openPeer('crb-g-'+Math.random().toString(36).slice(2,7));
+    const c = myPeer.connect('crb-'+code, {reliable:true});
+    let opened = false;
+    c.on('open', ()=>{
+      opened = true;
+      setupConn(c);
+      isHost = false;
+      showScreen('game');
+      setStatus('Connected — waiting for cards…');
+    });
+    c.on('error', ()=>{ $('join-err').textContent='Connection failed'; $('btn-connect').disabled=false; });
+    setTimeout(()=>{
+      if (!opened) { $('join-err').textContent='Timed out — check the code'; $('btn-connect').disabled=false; }
+    }, 11000);
+  } catch(e) {
+    $('join-err').textContent = 'Error: '+e.message;
+    $('btn-connect').disabled = false;
+  }
+}
+
+function setupConn(c) {
+  conn = c;
+  c.on('data', raw => {
+    try { handleMsg(JSON.parse(raw)); } catch(e) { console.error(e); }
+  });
+  c.on('close', ()=>{
+    if (gs.phase!=='lobby' && gs.phase!=='game-over') {
+      showInfoOverlay('Disconnected', 'Your opponent disconnected.', 'Restart', ()=>location.reload());
+    }
+  });
+}
+
+function send(msg) { if (conn && conn.open) conn.send(JSON.stringify(msg)); }
+
+// ═══════════════════════════════════════════════════════════
+//  MESSAGE ROUTING
+// ═══════════════════════════════════════════════════════════
+function handleMsg(m) {
+  if (isHost) handleHostMsg(m);
+  else        handleGuestMsg(m);
+}
+
+// ── HOST receives messages from guest ──
+function handleHostMsg(m) {
+  switch (m.type) {
+    case 'crib':
+      gs.crib.push(...m.cards);
+      gs.guestHand = gs.guestHand.filter(c=>!m.cards.some(x=>sameCard(x,c)));
+      gs.guestCribDone = true;
+      if (gs.hostCribDone) hostRevealStarter();
+      else setStatus('Waiting for you to send your crib cards…');
+      break;
+    case 'play':
+      if (gs.phase==='pegging' && gs.whoseTurn==='guest') hostPlayCard(m.card, true);
+      break;
+    case 'go':
+      if (gs.phase==='pegging' && gs.whoseTurn==='guest') hostHandleGo(true);
+      break;
+  }
+}
+
+// ── GUEST receives messages from host ──
+function handleGuestMsg(m) {
+  switch (m.type) {
+
+    case 'deal':
+      gs.myHand       = [...m.hand];
+      gs.myFullHand   = [];
+      gs.iAmDealer    = m.iAmDealer;
+      gs.myScore      = m.guestScore;
+      gs.oppScore     = m.hostScore;
+      gs.cribSel      = [];
+      gs.pile         = [];
+      gs.pileValue    = 0;
+      gs.oppPegged    = [];
+      gs.oppCardCount = 6;
+      gs.starter      = null;
+      gs.phase        = 'crib-select';
+      gs.myTurn       = false;
+      updateScores();
+      renderHand(); renderOpp();
+      el('pile-sec').style.display    = 'none';
+      el('starter-sec').style.display = 'none';
+      showBtn('btn-send-crib'); hideBtn('btn-go'); hideBtn('btn-continue');
+      setLabel(gs.iAmDealer ? 'You have the crib — select 2 to discard'
+                             : 'Opponent has the crib — select 2 to discard');
+      setStatus('Select 2 cards to send to the crib');
+      break;
+
+    case 'starter':
+      gs.starter = m.card;
+      showStarterCard(m.card);
+      if (m.heels) toast(m.heels);
+      break;
+
+    case 'score-update':
+      gs.myScore  = m.guestScore;
+      gs.oppScore = m.hostScore;
+      updateScores();
+      break;
+
+    case 'peg-start':
+      gs.phase        = 'pegging';
+      gs.myTurn       = m.yourTurn;
+      gs.oppCardCount = m.oppCount;
+      gs.myFullHand   = [...gs.myHand];
+      el('pile-sec').style.display = '';
+      setLabel('Your hand');
+      hideBtn('btn-send-crib'); hideBtn('btn-continue');
+      renderHand(); renderOpp(); updatePileUI();
+      if (gs.myTurn) { setStatus('Your turn — play a card'); checkAutoGo(); }
+      else setStatus("Opponent's turn");
+      break;
+
+    case 'your-turn':
+      gs.myTurn = true;
+      setStatus('Your turn — play a card');
+      renderHand();
+      checkAutoGo();
+      break;
+
+    case 'opp-played':
+      gs.oppPegged.push(m.card);
+      gs.oppCardCount = m.oppCount;
+      gs.pile.push(m.card);
+      gs.pileValue    = m.pileValue;
+      renderOpp(); updatePileUI();
+      if (m.pts > 0) toast(m.desc.join(' + '));
+      break;
+
+    case 'opp-go':
+      toast('Opponent says Go');
+      break;
+
+    case 'you-go':
+      gs.myTurn = false;
+      hideBtn('btn-go');
+      setStatus('You said Go — wait for opponent');
+      toast('You say Go');
+      break;
+
+    case 'last-card':
+      toast(m.toMe ? 'Last card — you score 1!' : 'Last card — opponent scores 1');
+      break;
+
+    case 'pile-reset':
+      gs.pile = []; gs.pileValue = 0;
+      gs.hostSaidGo = false; gs.guestSaidGo = false;
+      updatePileUI();
+      break;
+
+    case 'show-count': {
+      gs.myScore  = m.guestScore;
+      gs.oppScore = m.hostScore;
+      updateScores();
+      const isMe = (m.owner === 'guest');
+      const lbl  = m.isCrib
+        ? (isMe ? 'The Crib (yours)' : "The Crib (opponent's)")
+        : (isMe ? 'Your hand' : "Opponent's hand");
+      showCountOverlay(lbl, m.hand, m.starter, m.total, m.parts, null);
+      break;
+    }
+
+    case 'next-hand':
+      gs.iAmDealer = !m.hostIsDealer;
+      setStatus('Next hand starting…');
+      break;
+
+    case 'game-over':
+      gs.myScore  = m.guestScore;
+      gs.oppScore = m.hostScore;
+      updateScores();
+      gs.phase = 'game-over';
+      if (m.winner==='guest')
+        showInfoOverlay('You Win! 🎉', `Final score — You: ${m.guestScore}, Opponent: ${m.hostScore}`, 'Play Again', ()=>location.reload());
+      else
+        showInfoOverlay('Opponent Wins', `Final score — You: ${m.guestScore}, Opponent: ${m.hostScore}`, 'Play Again', ()=>location.reload());
+      break;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HOST GAME LOGIC
+// ═══════════════════════════════════════════════════════════
+
+function hostDeal() {
+  const deck     = shuffle(makeDeck());
+  gs.myHand      = deck.slice(0,6);
+  gs.guestHand   = deck.slice(6,12);
+  gs.deck        = deck.slice(12);
+  gs.myFullHand  = [];
+  gs.guestFullHand = [];
+  gs.crib        = [];
+  gs.pile        = [];
+  gs.pileValue   = 0;
+  gs.oppPegged   = [];
+  gs.cribSel     = [];
+  gs.hostCribDone  = false;
+  gs.guestCribDone = false;
+  gs.hostSaidGo  = false;
+  gs.guestSaidGo = false;
+  gs.lastPlayed  = null;
+  gs.starter     = null;
+  gs.myTurn      = false;
+  gs.phase       = 'crib-select';
+
+  send({type:'deal', hand:gs.guestHand, iAmDealer:!gs.iAmDealer,
+        hostScore:gs.myScore, guestScore:gs.oppScore});
+
+  el('pile-sec').style.display    = 'none';
+  el('starter-sec').style.display = 'none';
+  showBtn('btn-send-crib'); hideBtn('btn-go'); hideBtn('btn-continue');
+  renderHand(); renderOpp(); updateScores();
+  setLabel(gs.iAmDealer ? 'You have the crib — select 2 to discard'
+                         : 'Opponent has the crib — select 2 to discard');
+  setStatus('Select 2 cards to send to the crib');
+}
+
+function hostSubmitCrib() {
+  gs.crib.push(...gs.cribSel);
+  gs.myHand      = gs.myHand.filter(c=>!gs.cribSel.some(x=>sameCard(x,c)));
+  gs.cribSel     = [];
+  gs.hostCribDone = true;
+  hideBtn('btn-send-crib');
+  renderHand();
+  if (gs.guestCribDone) hostRevealStarter();
+  else setStatus('Waiting for opponent to discard…');
+}
+
+function hostRevealStarter() {
+  const s = gs.deck.shift();
+  gs.starter = s;
+
+  let heels = '';
+  if (s.rank==='J') {
+    if (gs.iAmDealer) { gs.myScore+=2;  heels='His Heels! You score 2.'; }
+    else               { gs.oppScore+=2; heels='His Heels! Opponent scores 2.'; }
+    updateScores();
+    send({type:'score-update', hostScore:gs.myScore, guestScore:gs.oppScore});
+    if (checkWin()) return;
+  }
+
+  send({type:'starter', card:s, heels});
+  showStarterCard(s);
+  if (heels) toast(heels);
+
+  gs.myFullHand   = [...gs.myHand];
+  gs.guestFullHand= [...gs.guestHand];
+  gs.phase        = 'pegging';
+  gs.whoseTurn    = gs.iAmDealer ? 'guest' : 'host';
+  gs.myTurn       = (gs.whoseTurn==='host');
+
+  el('pile-sec').style.display = '';
+  setLabel('Your hand');
+  renderHand(); renderOpp(); updatePileUI();
+
+  send({type:'peg-start', yourTurn:!gs.myTurn, oppCount:gs.myHand.length});
+
+  if (gs.myTurn) { setStatus('Your turn — play a card'); checkAutoGo(); }
+  else           { setStatus("Opponent's turn"); send({type:'your-turn'}); }
+}
+
+function hostPlayCard(card, byGuest) {
+  if (byGuest) {
+    gs.guestHand = gs.guestHand.filter(c=>!sameCard(c,card));
+    gs.oppPegged.push(card);
+  } else {
+    gs.myHand = gs.myHand.filter(c=>!sameCard(c,card));
+  }
+  gs.pile.push(card);
+  gs.pileValue += cardVal(card);
+  gs.lastPlayed  = byGuest ? 'guest' : 'host';
+  gs.hostSaidGo  = false;
+  gs.guestSaidGo = false;
+
+  const {pts, desc} = scorePeg(gs.pile);
+  if (pts > 0) {
+    if (byGuest) gs.oppScore+=pts; else gs.myScore+=pts;
+    updateScores();
+    send({type:'score-update', hostScore:gs.myScore, guestScore:gs.oppScore});
+    if (checkWin()) return;
+    toast(desc.join(' + '));
+  }
+
+  // Tell guest about host's play; guest plays are already known by them
+  if (!byGuest) {
+    send({type:'opp-played', card, oppCount:gs.guestHand.length,
+          pileValue:gs.pileValue, pts, desc});
+  }
+  renderHand(); renderOpp(); updatePileUI();
+
+  if (gs.pileValue===31) { setTimeout(()=>hostResetPile(), 900); return; }
+  setTimeout(()=>hostAdvancePeg(), 250);
+}
+
+function canPlay(hand, pv) { return hand.some(c=>pv+cardVal(c)<=31); }
+
+function hostAdvancePeg() {
+  const hCan = canPlay(gs.myHand, gs.pileValue);
+  const gCan = canPlay(gs.guestHand, gs.pileValue);
+  const done = gs.myHand.length===0 && gs.guestHand.length===0;
+
+  const awardLast = () => {
+    if (gs.pileValue!==31 && gs.pile.length>0) {
+      const toHost = gs.lastPlayed==='host';
+      if (toHost) gs.myScore+=1; else gs.oppScore+=1;
+      updateScores();
+      send({type:'score-update', hostScore:gs.myScore, guestScore:gs.oppScore});
+      if (checkWin()) return true;
+      toast(toHost ? 'Last card — you score 1' : 'Last card — opponent scores 1');
+      send({type:'last-card', toMe:!toHost});
+    }
+    return false;
+  };
+
+  if (done) {
+    if (awardLast()) return;
+    setTimeout(()=>hostStartCounting(), 900);
+    return;
+  }
+
+  if (!hCan && !gCan) {
+    if (awardLast()) return;
+    setTimeout(()=>hostResetPile(), 800);
+    return;
+  }
+
+  if (!hCan) {
+    if (!gs.hostSaidGo) {
+      gs.hostSaidGo = true;
+      toast('You say Go');
+      send({type:'opp-go'});
+      setStatus('You said Go — opponent plays');
+    }
+    if (gCan) { gs.whoseTurn='guest'; gs.myTurn=false; send({type:'your-turn'}); }
+    return;
+  }
+
+  if (!gCan) {
+    if (!gs.guestSaidGo) {
+      gs.guestSaidGo = true;
+      toast('Opponent says Go');
+      send({type:'you-go'});
+    }
+    gs.whoseTurn='host'; gs.myTurn=true;
+    setStatus('Opponent said Go — your turn');
+    return;
+  }
+
+  if (gs.whoseTurn==='guest') {
+    gs.whoseTurn='host'; gs.myTurn=true;
+    setStatus('Your turn — play a card');
+  } else {
+    gs.whoseTurn='guest'; gs.myTurn=false;
+    setStatus("Opponent's turn");
+    send({type:'your-turn'});
+  }
+}
+
+function hostHandleGo(fromGuest) {
+  if (fromGuest) {
+    gs.guestSaidGo = true;
+    toast('Opponent says Go');
+    send({type:'you-go'});
+    if (canPlay(gs.myHand, gs.pileValue)) {
+      gs.whoseTurn='host'; gs.myTurn=true;
+      setStatus('Opponent said Go — your turn');
+    } else {
+      hostAdvancePeg();
+    }
+  } else {
+    gs.hostSaidGo = true;
+    toast('You say Go');
+    send({type:'opp-go'});
+    gs.myTurn=false;
+    setStatus('You said Go — opponent plays');
+    hostAdvancePeg();
+  }
+}
+
+function hostResetPile() {
+  gs.pile=[]; gs.pileValue=0;
+  gs.hostSaidGo=false; gs.guestSaidGo=false; gs.lastPlayed=null;
+  send({type:'pile-reset'});
+  updatePileUI();
+
+  if (gs.myHand.length===0 && gs.guestHand.length===0) {
+    setTimeout(()=>hostStartCounting(), 400);
+    return;
+  }
+
+  // non-dealer leads new pile
+  const ndHost = !gs.iAmDealer;
+  gs.whoseTurn = ndHost ? 'host' : 'guest';
+  gs.myTurn    = (gs.whoseTurn==='host');
+  if (gs.myTurn) setStatus('Your turn — play a card');
+  else { setStatus("Opponent's turn"); send({type:'your-turn'}); }
+}
+
+// ── COUNTING ──
+
+function hostStartCounting() {
+  gs.phase    = 'counting';
+  gs.countStep = 0;
+  gs.pile=[]; gs.pileValue=0;
+  updatePileUI();
+  el('pile-sec').style.display='none';
+  hideBtn('btn-go'); hideBtn('btn-send-crib'); hideBtn('btn-continue');
+  setLabel('Counting');
+  setStatus('Counting hands…');
+  setTimeout(()=>hostNextCount(), 300);
+}
+
+function hostNextCount() {
+  const step = gs.countStep;
+  // step 0: non-dealer hand, 1: dealer hand, 2: crib
+  const ndIsHost = !gs.iAmDealer;
+
+  if (step===0) {
+    const hand = ndIsHost ? gs.myFullHand : gs.guestFullHand;
+    const {total, parts} = scoreHand(hand, gs.starter, false);
+    if (ndIsHost) gs.myScore+=total; else gs.oppScore+=total;
+    updateScores();
+    send({type:'score-update', hostScore:gs.myScore, guestScore:gs.oppScore});
+    if (checkWin()) return;
+    const lbl = ndIsHost ? 'Your hand (non-dealer)' : "Opponent's hand (non-dealer)";
+    send({type:'show-count', owner:ndIsHost?'host':'guest', hand, starter:gs.starter,
+          total, parts, hostScore:gs.myScore, guestScore:gs.oppScore});
+    showCountOverlay(lbl, hand, gs.starter, total, parts, ()=>{
+      gs.countStep=1; hostNextCount();
+    });
+
+  } else if (step===1) {
+    const dIsHost = gs.iAmDealer;
+    const hand = dIsHost ? gs.myFullHand : gs.guestFullHand;
+    const {total, parts} = scoreHand(hand, gs.starter, false);
+    if (dIsHost) gs.myScore+=total; else gs.oppScore+=total;
+    updateScores();
+    send({type:'score-update', hostScore:gs.myScore, guestScore:gs.oppScore});
+    if (checkWin()) return;
+    const lbl = dIsHost ? 'Your hand (dealer)' : "Opponent's hand (dealer)";
+    send({type:'show-count', owner:dIsHost?'host':'guest', hand, starter:gs.starter,
+          total, parts, hostScore:gs.myScore, guestScore:gs.oppScore});
+    showCountOverlay(lbl, hand, gs.starter, total, parts, ()=>{
+      gs.countStep=2; hostNextCount();
+    });
+
+  } else {
+    const {total, parts} = scoreHand(gs.crib, gs.starter, true);
+    if (gs.iAmDealer) gs.myScore+=total; else gs.oppScore+=total;
+    updateScores();
+    send({type:'score-update', hostScore:gs.myScore, guestScore:gs.oppScore});
+    if (checkWin()) return;
+    const lbl = gs.iAmDealer ? 'The Crib (yours)' : "The Crib (opponent's)";
+    send({type:'show-count', owner:gs.iAmDealer?'host':'guest', isCrib:true,
+          hand:gs.crib, starter:gs.starter, total, parts,
+          hostScore:gs.myScore, guestScore:gs.oppScore});
+    showCountOverlay(lbl, gs.crib, gs.starter, total, parts, ()=>hostNextHand());
+  }
+}
+
+function hostNextHand() {
+  gs.iAmDealer = !gs.iAmDealer;
+  send({type:'next-hand', hostIsDealer:gs.iAmDealer});
+  setStatus('Starting next hand…');
+  setTimeout(()=>hostDeal(), 700);
+}
+
+function checkWin() {
+  if (gs.myScore>=WIN) {
+    gs.phase='game-over';
+    send({type:'game-over', winner:'host', hostScore:gs.myScore, guestScore:gs.oppScore});
+    showInfoOverlay('You Win! 🎉',
+      `Final score — You: ${gs.myScore}, Opponent: ${gs.oppScore}`,
+      'Play Again', ()=>location.reload());
+    return true;
+  }
+  if (gs.oppScore>=WIN) {
+    gs.phase='game-over';
+    send({type:'game-over', winner:'guest', hostScore:gs.myScore, guestScore:gs.oppScore});
+    showInfoOverlay('Opponent Wins',
+      `Final score — You: ${gs.myScore}, Opponent: ${gs.oppScore}`,
+      'Play Again', ()=>location.reload());
+    return true;
+  }
+  return false;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GUEST ACTIONS
+// ═══════════════════════════════════════════════════════════
+
+function guestSendCrib() {
+  send({type:'crib', cards:gs.cribSel});
+  gs.myHand  = gs.myHand.filter(c=>!gs.cribSel.some(x=>sameCard(x,c)));
+  gs.cribSel = [];
+  hideBtn('btn-send-crib');
+  renderHand();
+  setStatus('Crib sent — waiting for opponent…');
+}
+
+function guestPlayCard(card) {
+  send({type:'play', card});
+  gs.myHand    = gs.myHand.filter(c=>!sameCard(c,card));
+  gs.pile.push(card);
+  gs.pileValue+= cardVal(card);
+  gs.myTurn   = false;
+  renderHand(); updatePileUI();
+  const {pts, desc} = scorePeg(gs.pile);
+  if (pts>0) toast(desc.join(' + '));
+  setStatus("Opponent's turn");
+}
+
+function checkAutoGo() {
+  if (!gs.myTurn || gs.phase!=='pegging') return;
+  if (gs.myHand.length===0) return;
+  const canP = gs.myHand.some(c=>gs.pileValue+cardVal(c)<=31);
+  if (canP) return; // can play normally
+  // must say Go
+  if (isHost) {
+    hostHandleGo(false);
+  } else {
+    send({type:'go'});
+    gs.myTurn=false;
+    hideBtn('btn-go');
+    setStatus('You said Go — wait for opponent');
+    toast('You say Go');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI
+// ═══════════════════════════════════════════════════════════
+
+function el(id)       { return document.getElementById(id); }
+function $(id)        { return document.getElementById(id); }
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('screen-'+name).classList.add('active');
+}
+function showBtn(id)  { $(id).style.display=''; }
+function hideBtn(id)  { $(id).style.display='none'; }
+function setStatus(t) { $('statusbar').textContent=t; $('statusbar').className='statusbar'; }
+function setLabel(t)  { $('hand-label').textContent=t; }
+
+function updateScores() {
+  $('my-score').textContent  = gs.myScore;
+  $('opp-score').textContent = gs.oppScore;
+  $('my-dealer').classList.toggle('show',  gs.iAmDealer);
+  $('opp-dealer').classList.toggle('show', !gs.iAmDealer);
+}
+
+function makeCardEl(card, small=false) {
+  const d = document.createElement('div');
+  d.className = 'card'+(RED.has(card.suit)?' red':' black')+(small?' sm':'');
+  d.innerHTML = `<span class="card-r">${card.rank}</span><span class="card-s">${SYM[card.suit]}</span>`;
+  return d;
+}
+function makeBack(small=false) {
+  const d = document.createElement('div');
+  d.className = 'card bk'+(small?' sm':'');
+  return d;
+}
+
+function renderHand() {
+  const cont = $('my-hand');
+  cont.innerHTML = '';
+
+  if (gs.phase==='crib-select') {
+    gs.myHand.forEach(card => {
+      const d = makeCardEl(card);
+      if (gs.cribSel.some(x=>sameCard(x,card))) d.classList.add('sel');
+      d.addEventListener('click', ()=>{
+        if (gs.phase!=='crib-select') return;
+        const idx = gs.cribSel.findIndex(x=>sameCard(x,card));
+        if (idx>=0) gs.cribSel.splice(idx,1);
+        else if (gs.cribSel.length<2) gs.cribSel.push(card);
+        renderHand();
+        $('btn-send-crib').disabled = (gs.cribSel.length!==2);
+      });
+      cont.appendChild(d);
+    });
+    $('btn-send-crib').disabled = (gs.cribSel.length!==2);
+
+  } else if (gs.phase==='pegging') {
+    const hasPlayable = gs.myHand.some(c=>gs.pileValue+cardVal(c)<=31);
+    gs.myHand.forEach(card => {
+      const d = makeCardEl(card);
+      const playable = gs.pileValue+cardVal(card)<=31;
+      if (!gs.myTurn || !playable) d.classList.add('dim');
+      d.addEventListener('click', ()=>{
+        if (!gs.myTurn || gs.phase!=='pegging') return;
+        if (gs.pileValue+cardVal(card)>31) return;
+        if (isHost) hostPlayCard(card, false);
+        else        guestPlayCard(card);
+      });
+      cont.appendChild(d);
+    });
+    // Show Go button for guest (host auto-goes via checkAutoGo)
+    if (!isHost && gs.myTurn && !hasPlayable && gs.myHand.length>0) {
+      showBtn('btn-go');
+    } else {
+      hideBtn('btn-go');
+    }
+
+  } else {
+    gs.myHand.forEach(card=>cont.appendChild(makeCardEl(card)));
+  }
+}
+
+function renderOpp() {
+  const cont = $('opp-cards');
+  cont.innerHTML = '';
+  // played cards shown small
+  gs.oppPegged.forEach(c=>{ const d=makeCardEl(c,true); d.classList.add('dim'); cont.appendChild(d); });
+  // remaining cards as backs
+  const remaining = isHost ? gs.guestHand.length : gs.oppCardCount;
+  for (let i=0; i<remaining; i++) cont.appendChild(makeBack());
+}
+
+function updatePileUI() {
+  const cards = $('pile-cards');
+  cards.innerHTML = '';
+  gs.pile.forEach(c=>cards.appendChild(makeCardEl(c,true)));
+  const v = $('pile-val');
+  v.textContent = gs.pileValue;
+  v.className   = 'pile-val'+(gs.pileValue===31?' max':gs.pileValue>=27?' hi':'');
+}
+
+function showStarterCard(card) {
+  const cont = $('starter-el');
+  cont.innerHTML='';
+  const d=makeCardEl(card);
+  d.classList.add('starter-hi');
+  cont.appendChild(d);
+  el('starter-sec').style.display='';
+}
+
+function toast(msg) {
+  const d=document.createElement('div');
+  d.className='toast'; d.textContent=msg;
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(), 2200);
+}
+
+// ── Overlays ──
+
+function _buildOverlay(title, body) {
+  $('ov-title').textContent  = title;
+  $('ov-hand').innerHTML     = '';
+  $('ov-breakdown').innerHTML= body;
+}
+
+function showInfoOverlay(title, msg, btnLabel, onOk) {
+  _buildOverlay(title, `<p style="color:#aaa;font-size:14px;text-align:center;line-height:1.6;margin:8px 0">${msg}</p>`);
+  $('ov-ok').textContent = btnLabel||'OK';
+  $('overlay').classList.add('show');
+  $('ov-ok').onclick = ()=>{ $('overlay').classList.remove('show'); if(onOk) onOk(); };
+}
+
+function showCountOverlay(title, hand, starter, total, parts, onOk) {
+  $('ov-title').textContent = title;
+  // cards
+  const hr = $('ov-hand');
+  hr.innerHTML='';
+  hand.forEach(c=>hr.appendChild(makeCardEl(c,true)));
+  const sep=document.createElement('span');
+  sep.textContent='+'; sep.style.cssText='color:#444;align-self:center;font-size:16px;padding:0 2px';
+  hr.appendChild(sep);
+  const sd=makeCardEl(starter,true); sd.classList.add('starter-hi'); hr.appendChild(sd);
+  // breakdown
+  const bd = $('ov-breakdown');
+  bd.innerHTML='';
+  if (parts.length===0) {
+    bd.innerHTML='<p style="color:#777;font-size:13px;text-align:center;margin:6px 0">No score</p>';
+  } else {
+    parts.forEach(p=>{
+      const r=document.createElement('div'); r.className='brow';
+      r.innerHTML=`<span>${p.l}</span><span>${p.p}</span>`;
+      bd.appendChild(r);
+    });
+    const t=document.createElement('div'); t.className='btotal';
+    t.innerHTML=`<span>Total</span><span>${total} pts</span>`;
+    bd.appendChild(t);
+  }
+  // button
+  $('ov-ok').textContent = onOk ? 'Continue →' : 'OK';
+  $('overlay').classList.add('show');
+  $('ov-ok').onclick = ()=>{
+    $('overlay').classList.remove('show');
+    if (onOk) onOk();
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+//  EVENT LISTENERS
+// ═══════════════════════════════════════════════════════════
+
+$('btn-new').addEventListener('click', createGame);
+
+$('btn-join').addEventListener('click', ()=>showScreen('joining'));
+
+$('btn-copy').addEventListener('click', ()=>{
+  const code = $('game-code').textContent;
+  navigator.clipboard.writeText(code)
+    .then(()=>toast('Code copied!'))
+    .catch(()=>toast('Code: '+code));
+});
+
+$('btn-cancel-host').addEventListener('click', ()=>{
+  if (myPeer) myPeer.destroy();
+  myPeer=null; conn=null;
+  showScreen('lobby');
+});
+
+$('btn-cancel-join').addEventListener('click', ()=>{
+  if (myPeer) myPeer.destroy();
+  myPeer=null; conn=null;
+  $('join-err').textContent='';
+  $('btn-connect').disabled=false;
+  showScreen('lobby');
+});
+
+$('btn-connect').addEventListener('click', ()=>joinGame($('join-input').value));
+
+$('join-input').addEventListener('keydown', e=>{
+  if (e.key==='Enter') joinGame($('join-input').value);
+});
+
+$('btn-send-crib').addEventListener('click', ()=>{
+  if (gs.cribSel.length!==2) return;
+  if (isHost) hostSubmitCrib(); else guestSendCrib();
+});
+
+$('btn-go').addEventListener('click', ()=>{
+  if (isHost) hostHandleGo(false);
+  else        checkAutoGo();
+});
+
+$('btn-continue').addEventListener('click', ()=>hideBtn('btn-continue'));
+</script>
+</body>
+</html>
