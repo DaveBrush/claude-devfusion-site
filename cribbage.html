@@ -232,7 +232,7 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 // ═══════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════
-const VERSION = '1.0.9';
+const VERSION = '1.1.0';
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['H','D','C','S'];
 const SYM   = {H:'♥',D:'♦',C:'♣',S:'♠'};
@@ -637,6 +637,7 @@ function handleGuestMsg(m) {
   switch (m.type) {
 
     case 'deal':
+      $('overlay').classList.remove('show');
       gs.myHand       = [...m.hand];
       gs.myFullHand   = [];
       gs.iAmDealer    = m.iAmDealer;
@@ -723,6 +724,9 @@ function handleGuestMsg(m) {
       break;
 
     case 'show-count': {
+      gs.phase = 'counting';
+      el('pile-sec').style.display = 'none';
+      hideBtn('btn-go'); hideBtn('btn-send-crib');
       gs.myScore  = m.guestScore;
       gs.oppScore = m.hostScore;
       updateScores();
@@ -735,6 +739,7 @@ function handleGuestMsg(m) {
     }
 
     case 'next-hand':
+      $('overlay').classList.remove('show');
       gs.iAmDealer = !m.hostIsDealer;
       setStatus('Next hand starting…');
       break;
