@@ -232,29 +232,36 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 // ═══════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════
-const VERSION = '1.0.4';
+const VERSION = '1.0.5';
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['H','D','C','S'];
 const SYM   = {H:'♥',D:'♦',C:'♣',S:'♠'};
 const RED   = new Set(['H','D']);
 const WIN   = 121;
 
-// ICE servers: multiple STUN servers + TURN relays as fallback for NAT traversal.
-// Without TURN, WebRTC fails when both phones are on different networks (mobile
-// data vs WiFi, or behind strict hotel/carrier NAT).
+/// ICE servers: STUN (direct) + multiple TURN providers (relay fallback).
+// STUN works when phones are on the same network or can reach each other's
+// public IPs. TURN is needed when behind strict hotel/carrier NAT.
+// Multiple providers because any single free server may be unreachable.
 const ICE_CFG = {
   iceServers: [
     { urls: ['stun:stun.l.google.com:19302',
              'stun:stun1.l.google.com:19302',
              'stun:stun2.l.google.com:19302'] },
     { urls: 'stun:stun.cloudflare.com:3478' },
-    // Open Relay Project — free public TURN relay
+    // Open Relay Project — UDP, TCP, and TLS variants
     { urls: 'turn:openrelay.metered.ca:80',
       username: 'openrelayproject', credential: 'openrelayproject' },
     { urls: 'turn:openrelay.metered.ca:443',
       username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+    { urls: 'turns:openrelay.metered.ca:443',
       username: 'openrelayproject', credential: 'openrelayproject' },
+    // Numb / Viagenie — second provider
+    { urls: 'turn:numb.viagenie.ca',
+      username: 'webrtc@live.com', credential: 'muazkh' },
+    // relay.backups.cz — third provider
+    { urls: 'turn:relay.backups.cz',
+      username: 'webrtc', credential: 'webrtc' },
   ]
 };
 
@@ -464,6 +471,17 @@ function _watchICE(c, label) {
     dbg(`${label} gathering: ${rtc.iceGatheringState}`, 'evt');
   rtc.onconnectionstatechange = () =>
     dbg(`${label} conn state: ${rtc.connectionState}`, 'evt');
+  // Log each candidate type: host=local IP, srflx=STUN public IP, relay=TURN
+  // If you never see "relay" candidates, the TURN server is unreachable.
+  rtc.onicecandidate = e => {
+    if (e.candidate) {
+      const p = e.candidate.candidate.split(' ');
+      const type = p[7] || '?', proto = p[2] || '?';
+      dbg(`${label} cand: ${type}/${proto}`, 'evt');
+    } else {
+      dbg(`${label} gathering: complete`, 'evt');
+    }
+  };
 }
 
 async function createGame() {
@@ -522,11 +540,11 @@ async function joinGame(code) {
     c.on('error', e=>{ dbg(`guest conn error: ${e}`, 'err'); $('join-err').textContent='Connection failed'; $('btn-connect').disabled=false; });
     setTimeout(()=>{
       if (!opened) {
-        dbg('guest: connection timed out', 'err');
-        $('join-err').textContent='Timed out — check the code';
+        dbg('guest: connection timed out after 20s', 'err');
+        $('join-err').textContent='Timed out — make sure both phones are on the same WiFi, or try again';
         $('btn-connect').disabled=false;
       }
-    }, 11000);
+    }, 20000);
   } catch(e) {
     dbg(`joinGame failed: ${e.message}`, 'err');
     $('join-err').textContent = 'Error: '+e.message;
