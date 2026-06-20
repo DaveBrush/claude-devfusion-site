@@ -92,6 +92,27 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 .toast{position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--accent);color:var(--txt);padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;z-index:200;white-space:nowrap;pointer-events:none;animation:tin .2s ease,tout .3s ease 1.7s forwards}
 @keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes tout{to{opacity:0;transform:translateX(-50%) translateY(-8px)}}
+
+/* ── DEBUG ── */
+#dbg-btn{position:fixed;bottom:12px;right:12px;z-index:300;background:#22263a;border:1px solid #333;color:#666;font-size:11px;padding:5px 9px;border-radius:20px;cursor:pointer;font-family:monospace;line-height:1}
+#dbg-btn:active{color:var(--accent);border-color:var(--accent)}
+#dbg-panel{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.92);flex-direction:column;padding:12px}
+#dbg-panel.show{display:flex}
+#dbg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-shrink:0}
+#dbg-header h3{color:var(--accent);font-size:14px;font-family:monospace}
+#dbg-header-btns{display:flex;gap:8px}
+#dbg-header-btns button{background:#1e2235;border:1px solid #333;color:#aaa;font-size:12px;padding:4px 10px;border-radius:4px;cursor:pointer}
+#dbg-meta{font-size:11px;color:#555;font-family:monospace;margin-bottom:6px;flex-shrink:0}
+#dbg-log{flex:1;overflow-y:auto;font-family:monospace;font-size:11px;line-height:1.6;scrollbar-width:thin;scrollbar-color:#333 transparent}
+#dbg-log::-webkit-scrollbar{width:4px}
+#dbg-log::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+.dl{padding:1px 0;border-bottom:1px solid #1a1e2a}
+.dl .dt{color:#444;margin-right:6px}
+.dl.send .dm{color:#6af}
+.dl.recv .dm{color:#af6}
+.dl.evt  .dm{color:#fa6}
+.dl.err  .dm{color:#f66}
+.dl.info .dm{color:#aaa}
 </style>
 </head>
 <body>
@@ -105,6 +126,7 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
   <button class="btn btn-s" id="btn-join">Join Game</button>
   <hr class="div">
   <p class="note">Needs internet briefly to connect</p>
+  <p class="note" id="version-label" style="color:#333;margin-top:4px"></p>
 </div>
 
 <!-- HOSTING -->
@@ -178,6 +200,22 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
   </div>
 </div>
 
+<!-- DEBUG BUTTON (always visible) -->
+<button id="dbg-btn">📋 log</button>
+
+<!-- DEBUG PANEL -->
+<div id="dbg-panel">
+  <div id="dbg-header">
+    <h3>Debug Log</h3>
+    <div id="dbg-header-btns">
+      <button id="dbg-clear">Clear</button>
+      <button id="dbg-close">✕ Close</button>
+    </div>
+  </div>
+  <div id="dbg-meta"></div>
+  <div id="dbg-log"></div>
+</div>
+
 <!-- OVERLAY -->
 <div class="overlay" id="overlay">
   <div class="obox">
@@ -194,11 +232,50 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 // ═══════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════
+const VERSION = '1.0.3';
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['H','D','C','S'];
 const SYM   = {H:'♥',D:'♦',C:'♣',S:'♠'};
 const RED   = new Set(['H','D']);
 const WIN   = 121;
+
+// ═══════════════════════════════════════════════════════════
+//  DEBUG LOG
+// ═══════════════════════════════════════════════════════════
+const _log = [];
+const _t0  = Date.now();
+
+function dbg(msg, kind='info') {
+  const ts  = ((Date.now()-_t0)/1000).toFixed(2)+'s';
+  _log.push({ts, msg, kind});
+  if (_log.length > 300) _log.shift();
+  const panel = document.getElementById('dbg-log');
+  if (panel && document.getElementById('dbg-panel').classList.contains('show')) {
+    _renderDbgLine({ts,msg,kind}, panel);
+    panel.scrollTop = panel.scrollHeight;
+  }
+  console.log(`[${kind}] ${msg}`);
+}
+
+function _renderDbgLine(entry, panel) {
+  const row = document.createElement('div');
+  row.className = 'dl '+entry.kind;
+  row.innerHTML = `<span class="dt">${entry.ts}</span><span class="dm">${_escHtml(entry.msg)}</span>`;
+  panel.appendChild(row);
+}
+
+function _escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function _refreshDbgPanel() {
+  const panel = document.getElementById('dbg-log');
+  panel.innerHTML='';
+  _log.forEach(e=>_renderDbgLine(e,panel));
+  panel.scrollTop = panel.scrollHeight;
+  document.getElementById('dbg-meta').textContent =
+    `role=${isHost?'HOST':'GUEST'}  conn=${conn?.open?'OPEN':'closed'}  phase=${gs.phase}  v${VERSION}`;
+}
 
 // ═══════════════════════════════════════════════════════════
 //  CARD UTILS
@@ -348,25 +425,28 @@ function genCode() {
 
 function openPeer(id) {
   return new Promise((res,rej) => {
+    dbg(`openPeer id=${id}`, 'evt');
     const p = new Peer(id, {debug:0});
-    p.on('open', ()=>res(p));
-    p.on('error', e=>rej(e));
+    p.on('open', id=>{ dbg(`peer open id=${id}`, 'evt'); res(p); });
+    p.on('error', e=>{ dbg(`peer error: ${e.type} ${e.message||''}`, 'err'); rej(e); });
+    p.on('disconnected', ()=>dbg('peer disconnected from server', 'err'));
     setTimeout(()=>rej(new Error('timeout')), 14000);
   });
 }
 
 async function createGame() {
   const code = genCode();
+  dbg(`createGame code=${code}`, 'evt');
   showScreen('hosting');
   $('game-code').textContent = code;
   try {
     myPeer = await openPeer('crb-'+code);
     myPeer.on('connection', c => {
-      // Wait for the WebRTC data channel to be fully open on the host side
-      // before calling setupConn or sending any data. Without this, hostDeal()
-      // fires while the guest's channel is still negotiating ICE candidates and
-      // the 'deal' message is silently dropped, leaving the guest on the join screen.
+      dbg(`incoming connection from ${c.peer}`, 'evt');
+      // Wait for the WebRTC data channel to be fully open before sending.
+      // The 'connection' event fires before ICE negotiation completes.
       c.on('open', () => {
+        dbg('host: data channel open — starting game', 'evt');
         setupConn(c);
         isHost = true;
         gs.iAmDealer = true;
@@ -374,9 +454,10 @@ async function createGame() {
         showScreen('game');
         setTimeout(()=>hostDeal(), 300);
       });
-      c.on('error', e => console.error('host conn error', e));
+      c.on('error', e => dbg(`host conn error: ${e}`, 'err'));
     });
   } catch(e) {
+    dbg(`createGame failed: ${e.message}`, 'err');
     alert('Could not start game. Check your connection and try again.');
     showScreen('lobby');
   }
@@ -385,26 +466,34 @@ async function createGame() {
 async function joinGame(code) {
   code = code.toUpperCase().trim();
   if (code.length !== 4) { $('join-err').textContent='Enter 4 characters'; return; }
+  dbg(`joinGame code=${code}`, 'evt');
   $('join-err').textContent = 'Connecting…';
   $('btn-connect').disabled = true;
   try {
     myPeer = await openPeer('crb-g-'+Math.random().toString(36).slice(2,7));
+    dbg(`connecting to crb-${code}`, 'evt');
     const c = myPeer.connect('crb-'+code, {reliable:true});
-    // Set up the data handler immediately so no messages are missed
-    // even if they arrive very soon after the channel opens
+    // Register data handler immediately — before 'open' — so no messages
+    // arriving right at channel-open time are missed
     setupConn(c);
     isHost = false;
     let opened = false;
     c.on('open', ()=>{
       opened = true;
+      dbg('guest: data channel open', 'evt');
       showScreen('game');
       setStatus('Connected — waiting for cards…');
     });
-    c.on('error', ()=>{ $('join-err').textContent='Connection failed'; $('btn-connect').disabled=false; });
+    c.on('error', e=>{ dbg(`guest conn error: ${e}`, 'err'); $('join-err').textContent='Connection failed'; $('btn-connect').disabled=false; });
     setTimeout(()=>{
-      if (!opened) { $('join-err').textContent='Timed out — check the code'; $('btn-connect').disabled=false; }
+      if (!opened) {
+        dbg('guest: connection timed out', 'err');
+        $('join-err').textContent='Timed out — check the code';
+        $('btn-connect').disabled=false;
+      }
     }, 11000);
   } catch(e) {
+    dbg(`joinGame failed: ${e.message}`, 'err');
     $('join-err').textContent = 'Error: '+e.message;
     $('btn-connect').disabled = false;
   }
@@ -412,17 +501,49 @@ async function joinGame(code) {
 
 function setupConn(c) {
   conn = c;
+  dbg('setupConn — data handler registered', 'evt');
   c.on('data', raw => {
-    try { handleMsg(JSON.parse(raw)); } catch(e) { console.error(e); }
+    try {
+      const msg = JSON.parse(raw);
+      dbg(`← recv [${msg.type}] ${_msgSummary(msg)}`, 'recv');
+      handleMsg(msg);
+    } catch(e) {
+      dbg(`bad message: ${e.message}`, 'err');
+      console.error(e);
+    }
   });
   c.on('close', ()=>{
+    dbg('connection closed', 'err');
     if (gs.phase!=='lobby' && gs.phase!=='game-over') {
       showInfoOverlay('Disconnected', 'Your opponent disconnected.', 'Restart', ()=>location.reload());
     }
   });
 }
 
-function send(msg) { if (conn && conn.open) conn.send(JSON.stringify(msg)); }
+function send(msg) {
+  if (conn && conn.open) {
+    dbg(`→ send [${msg.type}] ${_msgSummary(msg)}`, 'send');
+    conn.send(JSON.stringify(msg));
+  } else {
+    dbg(`send DROPPED [${msg.type}] — conn not open`, 'err');
+  }
+}
+
+function _msgSummary(m) {
+  switch(m.type) {
+    case 'deal':        return `${m.hand?.length} cards, dealer=${m.iAmDealer}`;
+    case 'starter':     return cardKey(m.card)+(m.heels?' HEELS':'');
+    case 'card-played': return cardKey(m.card)+` pv=${m.pileValue} pts=${m.pts}`;
+    case 'opp-played':  return cardKey(m.card)+` pv=${m.pileValue} pts=${m.pts}`;
+    case 'show-count':  return `${m.owner} total=${m.total}`;
+    case 'score-update':return `host=${m.hostScore} guest=${m.guestScore}`;
+    case 'game-over':   return `winner=${m.winner}`;
+    case 'peg-start':   return `yourTurn=${m.yourTurn}`;
+    case 'crib':        return `${m.cards?.length} cards`;
+    case 'play':        return cardKey(m.card);
+    default:            return '';
+  }
+}
 
 // ═══════════════════════════════════════════════════════════
 //  MESSAGE ROUTING
@@ -576,6 +697,7 @@ function handleGuestMsg(m) {
 // ═══════════════════════════════════════════════════════════
 
 function hostDeal() {
+  dbg(`hostDeal — dealer=${gs.iAmDealer} scores me=${gs.myScore} opp=${gs.oppScore}`, 'evt');
   const deck     = shuffle(makeDeck());
   gs.myHand      = deck.slice(0,6);
   gs.guestHand   = deck.slice(6,12);
@@ -620,6 +742,7 @@ function hostSubmitCrib() {
 }
 
 function hostRevealStarter() {
+  dbg('hostRevealStarter — crib ready', 'evt');
   const s = gs.deck.shift();
   gs.starter = s;
 
@@ -792,6 +915,7 @@ function hostResetPile() {
 // ── COUNTING ──
 
 function hostStartCounting() {
+  dbg(`hostStartCounting — scores me=${gs.myScore} opp=${gs.oppScore}`, 'evt');
   gs.phase    = 'counting';
   gs.countStep = 0;
   gs.pile=[]; gs.pileValue=0;
@@ -1130,6 +1254,17 @@ $('btn-go').addEventListener('click', ()=>{
 });
 
 $('btn-continue').addEventListener('click', ()=>hideBtn('btn-continue'));
+
+// Debug panel
+$('dbg-btn').addEventListener('click', ()=>{
+  _refreshDbgPanel();
+  $('dbg-panel').classList.add('show');
+});
+$('dbg-close').addEventListener('click', ()=>$('dbg-panel').classList.remove('show'));
+$('dbg-clear').addEventListener('click', ()=>{ _log.length=0; $('dbg-log').innerHTML=''; });
+
+dbg(`Cribbage v${VERSION} loaded`, 'info');
+$('version-label').textContent = 'v'+VERSION;
 </script>
 </body>
 </html>
