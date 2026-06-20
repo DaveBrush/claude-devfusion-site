@@ -41,8 +41,11 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 .score-num{font-size:30px;font-weight:800;font-family:monospace}
 .dealer-tag{font-size:8px;background:var(--accent);color:#fff;padding:1px 5px;border-radius:3px;font-weight:700;text-transform:uppercase;visibility:hidden}
 .dealer-tag.show{visibility:visible}
-.sb-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:54px}
 .vs{font-size:11px;color:#666}
+.opp-row{display:flex;align-items:flex-end;gap:10px;width:100%}
+.opp-row .cards-row{flex:1;min-width:0}
+#starter-sec{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.starter-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#999;text-align:center}
 .statusbar{background:var(--bg2);padding:8px 14px;width:100%;font-size:13px;color:#bbb;text-align:center;min-height:34px;display:flex;align-items:center;justify-content:center}
 .statusbar.go{color:var(--accent);font-weight:700}
 .statusbar.wait{color:#bbb}
@@ -160,13 +163,7 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
       <div class="score-num" id="opp-score">0</div>
       <div class="dealer-tag" id="opp-dealer">Dealer</div>
     </div>
-    <div class="sb-mid">
-      <span class="vs" id="sb-vs">vs</span>
-      <div id="starter-sec" style="display:none">
-        <div id="starter-el"></div>
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#999;text-align:center;margin-top:3px">Starter</div>
-      </div>
-    </div>
+    <div class="vs">vs</div>
     <div class="score-block">
       <div class="score-name">You</div>
       <div class="score-num" id="my-score">0</div>
@@ -178,7 +175,13 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 
   <div class="area">
     <div class="area-label">Opponent</div>
-    <div class="cards-row" id="opp-cards"></div>
+    <div class="opp-row">
+      <div class="cards-row" id="opp-cards"></div>
+      <div id="starter-sec" style="display:none">
+        <div id="starter-el"></div>
+        <div class="starter-lbl">Starter</div>
+      </div>
+    </div>
   </div>
 
   <div class="center-zone">
@@ -234,7 +237,7 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 // ═══════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════
-const VERSION = '1.1.1';
+const VERSION = '1.1.2';
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['H','D','C','S'];
 const SYM   = {H:'♥',D:'♦',C:'♣',S:'♠'};
@@ -657,7 +660,6 @@ function handleGuestMsg(m) {
       renderHand(); renderOpp();
       el('pile-sec').style.display    = 'none';
       el('starter-sec').style.display = 'none';
-      $('sb-vs').style.display = '';
       showBtn('btn-send-crib'); hideBtn('btn-go'); hideBtn('btn-continue');
       setLabel(gs.iAmDealer ? 'You have the crib — select 2 to discard'
                              : 'Opponent has the crib — select 2 to discard');
@@ -791,7 +793,6 @@ function hostDeal() {
 
   el('pile-sec').style.display    = 'none';
   el('starter-sec').style.display = 'none';
-  $('sb-vs').style.display = '';
   showBtn('btn-send-crib'); hideBtn('btn-go'); hideBtn('btn-continue');
   renderHand(); renderOpp(); updateScores();
   setLabel(gs.iAmDealer ? 'You have the crib — select 2 to discard'
@@ -1228,10 +1229,9 @@ function showStarterCard(card) {
   const cont = $('starter-el');
   cont.innerHTML='';
   const d=makeCardEl(card);
-  d.classList.add('starter-hi','sm');
+  d.classList.add('starter-hi');
   cont.appendChild(d);
-  $('sb-vs').style.display='none';
-  el('starter-sec').style.display='';
+  el('starter-sec').style.display='flex';
 }
 
 function toast(msg) {
