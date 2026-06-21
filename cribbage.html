@@ -111,6 +111,13 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 .brow:last-child{border:none}
 .btotal{display:flex;justify-content:space-between;padding:8px 0 0;font-size:17px;font-weight:700;color:var(--accent)}
 
+/* ── SCORE STEPPER ── */
+.score-stepper{display:flex;align-items:center;gap:20px;justify-content:center;margin:10px 0 14px}
+.stepper-btn{width:48px;height:48px;border-radius:50%;border:2px solid var(--accent);background:transparent;color:var(--accent);font-size:30px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;touch-action:manipulation;user-select:none}
+.stepper-btn:active{background:var(--accent);color:#fff}
+.stepper-val{font-size:46px;font-weight:800;font-family:monospace;min-width:62px;text-align:center}
+.count-verdict{margin-top:10px;padding:10px 12px;background:rgba(0,0,0,.35);border-radius:8px;text-align:center}
+
 /* ── TOAST ── */
 .toast{position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--accent);color:var(--txt);padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;z-index:200;white-space:nowrap;pointer-events:none;animation:tin .2s ease,tout .3s ease 1.7s forwards}
 @keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
@@ -259,7 +266,7 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 // ═══════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════
-const VERSION = '1.1.5';
+const VERSION = '1.1.6';
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['H','D','C','S'];
 const SYM   = {H:'♥',D:'♦',C:'♣',S:'♠'};
@@ -622,7 +629,9 @@ function _msgSummary(m) {
     case 'starter':     return cardKey(m.card)+(m.heels?' HEELS':'');
     case 'card-played': return cardKey(m.card)+` pv=${m.pileValue} pts=${m.pts}`;
     case 'opp-played':  return cardKey(m.card)+` pv=${m.pileValue} pts=${m.pts}`;
-    case 'show-count':  return `${m.owner} total=${m.total}`;
+    case 'count-declare-req': return `owner=${m.owner} isCrib=${m.isCrib}`;
+    case 'count-claim':  return `amount=${m.amount}`;
+    case 'count-reveal': return `owner=${m.owner} correct=${m.correct} claimed=${m.claimed}`;
     case 'score-update':return `host=${m.hostScore} guest=${m.guestScore}`;
     case 'game-over':   return `winner=${m.winner}`;
     case 'peg-start':   return `yourTurn=${m.yourTurn}`;
@@ -649,6 +658,9 @@ function handleHostMsg(m) {
       gs.guestCribDone = true;
       if (gs.hostCribDone) hostRevealStarter();
       else setStatus('Waiting for you to send your crib cards…');
+      break;
+    case 'count-claim':
+      if (gs.phase==='counting') hostProcessClaim(m.amount);
       break;
     case 'play':
       if (gs.phase==='pegging' && gs.whoseTurn==='guest') hostPlayCard(m.card, true);
@@ -752,18 +764,33 @@ function handleGuestMsg(m) {
       updatePileUI();
       break;
 
-    case 'show-count': {
+    case 'count-declare-req': {
       gs.phase = 'counting';
       el('pile-sec').style.display = 'none';
       hideBtn('btn-go'); hideBtn('btn-send-crib');
+      const isMe = (m.owner === 'guest');
+      const lbl = m.isCrib
+        ? (isMe ? 'Count the Crib (yours)' : "Count the Crib (opponent's)")
+        : (isMe ? 'Count your hand' : "Opponent's hand");
+      showCountDeclareOverlay(lbl, m.hand, m.starter, isMe, isMe ? claimed => {
+        // Show waiting state while host processes
+        $('ov-title').textContent = 'Declared: ' + claimed;
+        $('ov-breakdown').innerHTML = '<p style="color:#aaa;font-size:13px;text-align:center;margin:12px 0">Waiting for result…</p>';
+        $('ov-ok').style.display = 'none';
+        send({type:'count-claim', amount:claimed});
+      } : null);
+      break;
+    }
+
+    case 'count-reveal': {
       gs.myScore  = m.guestScore;
       gs.oppScore = m.hostScore;
       updateScores();
-      const isMe = (m.owner === 'guest');
-      const lbl  = m.isCrib
-        ? (isMe ? 'The Crib (yours)' : "The Crib (opponent's)")
-        : (isMe ? 'Your hand' : "Opponent's hand");
-      showCountOverlay(lbl, m.hand, m.starter, m.total, m.parts, null);
+      const isMe2 = (m.owner === 'guest');
+      const lbl2 = m.isCrib
+        ? (isMe2 ? 'The Crib (yours)' : "The Crib (opponent's)")
+        : (isMe2 ? 'Your hand' : "Opponent's hand");
+      showCountRevealOverlay(lbl2, m.hand, m.starter, m.claimed, m.correct, m.parts, m.muggins, m.owner, null);
       break;
     }
 
@@ -774,6 +801,7 @@ function handleGuestMsg(m) {
       break;
 
     case 'game-over':
+      $('overlay').classList.remove('show');
       gs.myScore  = m.guestScore;
       gs.oppScore = m.hostScore;
       updateScores();
@@ -1037,50 +1065,67 @@ function hostStartCounting() {
 
 function hostNextCount() {
   const step = gs.countStep;
-  // step 0: non-dealer hand, 1: dealer hand, 2: crib
   const ndIsHost = !gs.iAmDealer;
 
   if (step===0) {
-    const hand = ndIsHost ? gs.myFullHand : gs.guestFullHand;
-    const {total, parts} = scoreHand(hand, gs.starter, false);
-    if (ndIsHost) gs.myScore+=total; else gs.oppScore+=total;
-    updateScores();
-    send({type:'score-update', hostScore:gs.myScore, guestScore:gs.oppScore});
-    if (checkWin()) return;
-    const lbl = ndIsHost ? 'Your hand (non-dealer)' : "Opponent's hand (non-dealer)";
-    send({type:'show-count', owner:ndIsHost?'host':'guest', hand, starter:gs.starter,
-          total, parts, hostScore:gs.myScore, guestScore:gs.oppScore});
-    showCountOverlay(lbl, hand, gs.starter, total, parts, ()=>{
-      gs.countStep=1; hostNextCount();
-    });
+    const hand  = ndIsHost ? gs.myFullHand : gs.guestFullHand;
+    const owner = ndIsHost ? 'host' : 'guest';
+    gs._countCtx = {hand, starter:gs.starter, owner, isCrib:false};
+    if (ndIsHost) {
+      showCountDeclareOverlay('Count your hand (non-dealer)', hand, gs.starter, true, hostProcessClaim);
+    } else {
+      showCountDeclareOverlay("Opponent's hand (non-dealer)", hand, gs.starter, false, null);
+      send({type:'count-declare-req', owner, hand, starter:gs.starter, isCrib:false});
+    }
 
   } else if (step===1) {
     const dIsHost = gs.iAmDealer;
-    const hand = dIsHost ? gs.myFullHand : gs.guestFullHand;
-    const {total, parts} = scoreHand(hand, gs.starter, false);
-    if (dIsHost) gs.myScore+=total; else gs.oppScore+=total;
-    updateScores();
-    send({type:'score-update', hostScore:gs.myScore, guestScore:gs.oppScore});
-    if (checkWin()) return;
-    const lbl = dIsHost ? 'Your hand (dealer)' : "Opponent's hand (dealer)";
-    send({type:'show-count', owner:dIsHost?'host':'guest', hand, starter:gs.starter,
-          total, parts, hostScore:gs.myScore, guestScore:gs.oppScore});
-    showCountOverlay(lbl, hand, gs.starter, total, parts, ()=>{
-      gs.countStep=2; hostNextCount();
-    });
+    const hand  = dIsHost ? gs.myFullHand : gs.guestFullHand;
+    const owner = dIsHost ? 'host' : 'guest';
+    gs._countCtx = {hand, starter:gs.starter, owner, isCrib:false};
+    if (dIsHost) {
+      showCountDeclareOverlay('Count your hand (dealer)', hand, gs.starter, true, hostProcessClaim);
+    } else {
+      showCountDeclareOverlay("Opponent's hand (dealer)", hand, gs.starter, false, null);
+      send({type:'count-declare-req', owner, hand, starter:gs.starter, isCrib:false});
+    }
 
   } else {
-    const {total, parts} = scoreHand(gs.crib, gs.starter, true);
-    if (gs.iAmDealer) gs.myScore+=total; else gs.oppScore+=total;
-    updateScores();
-    send({type:'score-update', hostScore:gs.myScore, guestScore:gs.oppScore});
-    if (checkWin()) return;
-    const lbl = gs.iAmDealer ? 'The Crib (yours)' : "The Crib (opponent's)";
-    send({type:'show-count', owner:gs.iAmDealer?'host':'guest', isCrib:true,
-          hand:gs.crib, starter:gs.starter, total, parts,
-          hostScore:gs.myScore, guestScore:gs.oppScore});
-    showCountOverlay(lbl, gs.crib, gs.starter, total, parts, ()=>hostNextHand());
+    const owner = gs.iAmDealer ? 'host' : 'guest';
+    gs._countCtx = {hand:gs.crib, starter:gs.starter, owner, isCrib:true};
+    if (gs.iAmDealer) {
+      showCountDeclareOverlay('Count the Crib (yours)', gs.crib, gs.starter, true, hostProcessClaim);
+    } else {
+      showCountDeclareOverlay("Count the Crib (opponent's)", gs.crib, gs.starter, false, null);
+      send({type:'count-declare-req', owner, hand:gs.crib, starter:gs.starter, isCrib:true});
+    }
   }
+}
+
+function hostProcessClaim(claimed) {
+  const {hand, starter, owner, isCrib} = gs._countCtx;
+  const {total, parts} = scoreHand(hand, starter, isCrib);
+  const scored  = Math.min(claimed, total);
+  const muggins = total - scored;
+
+  if (owner==='host') { gs.myScore+=scored;  gs.oppScore+=muggins; }
+  else                { gs.oppScore+=scored; gs.myScore+=muggins;  }
+  updateScores();
+
+  send({type:'count-reveal', owner, hand, starter, isCrib,
+        claimed, correct:total, parts, scored, muggins,
+        hostScore:gs.myScore, guestScore:gs.oppScore});
+
+  const lbl = isCrib
+    ? (owner==='host' ? 'The Crib (yours)' : "The Crib (opponent's)")
+    : (owner==='host' ? 'Your hand' : "Opponent's hand");
+  const isLastStep = (gs.countStep===2);
+
+  showCountRevealOverlay(lbl, hand, starter, claimed, total, parts, muggins, owner, ()=>{
+    if (checkWin()) return;
+    if (isLastStep) hostNextHand();
+    else { gs.countStep++; hostNextCount(); }
+  });
 }
 
 function hostNextHand() {
@@ -1354,38 +1399,86 @@ function showInfoOverlay(title, msg, btnLabel, onOk) {
   $('ov-ok').onclick = ()=>{ $('overlay').classList.remove('show'); if(onOk) onOk(); };
 }
 
-function showCountOverlay(title, hand, starter, total, parts, onOk) {
-  $('ov-title').textContent = title;
-  // cards
+function _ovCards(hand, starter) {
   const hr = $('ov-hand');
-  hr.innerHTML='';
+  hr.innerHTML = '';
   hand.forEach(c=>hr.appendChild(makeCardEl(c,true)));
-  const sep=document.createElement('span');
+  const sep = document.createElement('span');
   sep.textContent='+'; sep.style.cssText='color:#444;align-self:center;font-size:16px;padding:0 2px';
   hr.appendChild(sep);
-  const sd=makeCardEl(starter,true); sd.classList.add('starter-hi'); hr.appendChild(sd);
-  // breakdown
+  const sd = makeCardEl(starter,true); sd.classList.add('starter-hi'); hr.appendChild(sd);
+}
+
+function showCountDeclareOverlay(title, hand, starter, isActive, onDeclare) {
+  $('ov-title').textContent = title;
+  _ovCards(hand, starter);
   const bd = $('ov-breakdown');
-  bd.innerHTML='';
+  if (isActive) {
+    let claim = 0;
+    bd.innerHTML = `<p style="color:#aaa;font-size:13px;text-align:center;margin:8px 0 2px">What's your score?</p>
+      <div class="score-stepper">
+        <button class="stepper-btn" id="ov-minus">−</button>
+        <span class="stepper-val" id="ov-claim-val">0</span>
+        <button class="stepper-btn" id="ov-plus">+</button>
+      </div>`;
+    $('ov-minus').onclick = ()=>{ claim=Math.max(0,claim-1); $('ov-claim-val').textContent=claim; };
+    $('ov-plus').onclick  = ()=>{ claim=Math.min(29,claim+1); $('ov-claim-val').textContent=claim; };
+    $('ov-ok').textContent = 'Declare';
+    $('ov-ok').style.display = '';
+    $('ov-ok').onclick = ()=>{ $('overlay').classList.remove('show'); if(onDeclare) onDeclare(claim); };
+  } else {
+    bd.innerHTML = '<p style="color:#aaa;font-size:13px;text-align:center;margin:14px 0">Waiting for opponent to count…</p>';
+    $('ov-ok').style.display = 'none';
+  }
+  $('overlay').classList.add('show');
+}
+
+function showCountRevealOverlay(title, hand, starter, claimed, correct, parts, muggins, owner, onContinue) {
+  $('ov-title').textContent = title;
+  _ovCards(hand, starter);
+  const bd = $('ov-breakdown');
+  bd.innerHTML = '';
   if (parts.length===0) {
-    bd.innerHTML='<p style="color:#777;font-size:13px;text-align:center;margin:6px 0">No score</p>';
+    bd.innerHTML='<p style="color:#777;font-size:13px;text-align:center;margin:6px 0">No score in this hand</p>';
   } else {
     parts.forEach(p=>{
       const r=document.createElement('div'); r.className='brow';
       r.innerHTML=`<span>${p.l}</span><span>${p.p}</span>`;
       bd.appendChild(r);
     });
-    const t=document.createElement('div'); t.className='btotal';
-    t.innerHTML=`<span>Total</span><span>${total} pts</span>`;
-    bd.appendChild(t);
   }
-  // button
-  $('ov-ok').textContent = onOk ? 'Continue →' : 'OK';
+  // Verdict
+  const iAmScorer = (owner===(isHost?'host':'guest'));
+  let html = '';
+  if (iAmScorer) {
+    if (claimed===correct) {
+      html = `<div style="color:#4c4;font-size:16px;font-weight:700">✓ Correct! You score ${correct}</div>`;
+    } else if (claimed>correct) {
+      html = `<div style="color:#fa4;font-size:15px;font-weight:700">Overclaimed — you score ${correct}</div>
+              <div style="color:#888;font-size:12px;margin-top:3px">Declared ${claimed}, correct ${correct}</div>`;
+    } else {
+      const mg = muggins>0 ? `<div style="color:#f55;font-size:13px;margin-top:5px">Muggins! Opponent takes ${muggins} missed point${muggins>1?'s':''}</div>` : '';
+      html = `<div style="color:#fa4;font-size:15px;font-weight:700">You score ${claimed}</div>
+              <div style="color:#888;font-size:12px;margin-top:3px">Declared ${claimed}, correct was ${correct}</div>${mg}`;
+    }
+  } else {
+    if (claimed===correct) {
+      html = `<div style="color:#4c4;font-size:16px;font-weight:700">Opponent scores ${correct}</div>`;
+    } else if (claimed>correct) {
+      html = `<div style="color:#fa4;font-size:15px;font-weight:700">Opponent overclaimed — scores ${correct}</div>`;
+    } else {
+      const mg = muggins>0 ? `<div style="color:#4c4;font-size:13px;margin-top:5px">Muggins! You take ${muggins} missed point${muggins>1?'s':''}</div>` : '';
+      html = `<div style="color:#fa4;font-size:15px;font-weight:700">Opponent scores ${claimed}</div>
+              <div style="color:#888;font-size:12px;margin-top:3px">Declared ${claimed}, correct was ${correct}</div>${mg}`;
+    }
+  }
+  const v = document.createElement('div');
+  v.className='count-verdict'; v.innerHTML=html;
+  bd.appendChild(v);
+  $('ov-ok').textContent = onContinue ? 'Continue →' : 'OK';
+  $('ov-ok').style.display = '';
   $('overlay').classList.add('show');
-  $('ov-ok').onclick = ()=>{
-    $('overlay').classList.remove('show');
-    if (onOk) onOk();
-  };
+  $('ov-ok').onclick = ()=>{ $('overlay').classList.remove('show'); if(onContinue) onContinue(); };
 }
 
 // ═══════════════════════════════════════════════════════════
