@@ -61,12 +61,11 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 .pile-val.hi{color:#ff4444}
 .pile-val.max{color:#44dd44}
 .pile-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#999}
-.pile-cards{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
 .action-zone{display:flex;gap:8px;padding:8px 14px 16px;width:100%;flex-wrap:wrap;justify-content:center}
 .action-zone .btn{max-width:160px;flex:1;min-width:100px}
 
 /* ── CARDS ── */
-.card{flex-shrink:0;width:58px;height:84px;border-radius:8px;border:2px solid rgba(255,255,255,.08);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .12s,border-color .12s,opacity .12s;position:relative}
+.card{flex-shrink:0;width:58px;height:84px;border-radius:8px;border:2px solid rgba(255,255,255,.08);background:linear-gradient(145deg,rgba(255,255,255,.55) 0%,transparent 55%),#fff;box-shadow:0 3px 8px rgba(0,0,0,.28),0 1px 2px rgba(0,0,0,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .15s,border-color .15s,opacity .15s,box-shadow .15s;position:relative}
 .card:active{transform:scale(.92)}
 .card.red{color:#cc1111}
 .card.black{color:#111}
@@ -77,18 +76,30 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 .card-pip{font-size:26px;line-height:1}
 .face-portrait{width:30px;height:46px;display:flex;align-items:center;justify-content:center}
 .face-portrait svg{width:100%;height:100%}
-.card.face{background:linear-gradient(175deg,#fff 0%,#f5f0e8 100%)}
-.card.sel{transform:translateY(-10px);border-color:var(--accent);box-shadow:0 4px 14px rgba(255,102,0,.4)}
+.card.face{background:linear-gradient(145deg,rgba(255,255,255,.6) 0%,transparent 50%),linear-gradient(160deg,#fff 0%,#f5eedd 100%)}
+.card.face::after{content:'';position:absolute;inset:5px;border:1.5px solid currentColor;border-radius:3px;opacity:.14;pointer-events:none}
+.card.sel{transform:translateY(-10px);border-color:var(--accent);box-shadow:0 6px 18px rgba(255,102,0,.45),0 2px 6px rgba(0,0,0,.2)}
 .card.sel:active{transform:translateY(-10px) scale(.92)}
 .card.dim{opacity:.35;cursor:default;transform:none!important}
-.card.bk{background:linear-gradient(135deg,#1a3a6b,#0d2344)!important;border-color:rgba(255,255,255,.15)!important;cursor:default}
-.card.bk::after{content:'';width:38px;height:56px;border:1px solid rgba(255,255,255,.2);border-radius:4px}
+.card.bk{background:linear-gradient(135deg,#1e4080,#0d2344)!important;border-color:rgba(255,255,255,.18)!important;cursor:default;box-shadow:0 3px 8px rgba(0,0,0,.35)}
+.card.bk::after{content:'';position:absolute;inset:5px;border:1px solid rgba(255,255,255,.22);border-radius:4px}
 .card.sm{width:42px;height:60px}
 .card.sm .ci-r{font-size:10px}
 .card.sm .ci-s{font-size:8px}
 .card.sm .card-pip{font-size:18px}
 .card.sm .face-portrait{width:20px;height:32px}
 .card.starter-hi{border-color:var(--accent)!important;border-width:2px}
+
+/* ── PILE FAN ── */
+.pile-cards{display:flex;gap:0;flex-wrap:nowrap;justify-content:center;align-items:center;min-height:72px;padding:4px 0}
+.pile-cards .card{margin-left:-12px}
+.pile-cards .card:first-child{margin-left:0}
+
+/* ── DEAL ANIMATION ── */
+@keyframes card-deal{from{opacity:0;transform:translateY(-22px) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}
+.card.deal-in{animation:card-deal .22s ease both}
+@keyframes pile-arrive{from{opacity:0}to{opacity:1}}
+.card.pile-new{animation:pile-arrive .2s ease both}
 
 /* ── OVERLAY ── */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:100;align-items:center;justify-content:center;padding:16px}
@@ -248,7 +259,7 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 // ═══════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════
-const VERSION = '1.1.4';
+const VERSION = '1.1.5';
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['H','D','C','S'];
 const SYM   = {H:'♥',D:'♦',C:'♣',S:'♠'};
@@ -668,6 +679,7 @@ function handleGuestMsg(m) {
       gs.phase        = 'crib-select';
       gs.myTurn       = false;
       updateScores();
+      gs._freshDeal = true;
       renderHand(); renderOpp();
       el('pile-sec').style.display    = 'none';
       el('starter-sec').style.display = 'none';
@@ -807,6 +819,7 @@ function hostDeal() {
   el('starter-sec').style.display = 'none';
   $('starter-hdr').style.display  = 'none';
   showBtn('btn-send-crib'); hideBtn('btn-go'); hideBtn('btn-continue');
+  gs._freshDeal = true;
   renderHand(); renderOpp(); updateScores();
   setLabel(gs.iAmDealer ? 'You have the crib — select 2 to discard'
                          : 'Opponent has the crib — select 2 to discard');
@@ -1163,34 +1176,43 @@ function updateScores() {
 
 function _facePortrait(rank) {
   const P = {
-    J: `<svg viewBox="0 0 30 46" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="15" cy="16" rx="8" ry="8" fill="white" stroke="currentColor" stroke-width="1.5"/>
-      <circle cx="12" cy="15" r="1.3"/><circle cx="18" cy="15" r="1.3"/>
-      <path d="M11.5 18.5Q15 21 18.5 18.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-      <path d="M7 11C7 3 23 3 23 11" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".5"/>
-      <path d="M4 14l4-3 7 2 7-2 4 3-2 1H6Z" opacity=".7"/>
-      <path d="M5 26Q5 44 15 44Q25 44 25 26L22 24H8Z" opacity=".15"/>
-      <line x1="15" y1="24" x2="15" y2="44" stroke-width="1" opacity=".2"/>
+    J: `<svg viewBox="0 0 30 46" fill="currentColor">
+      <ellipse cx="15" cy="9" rx="7.5" ry="5.5" opacity=".78"/>
+      <rect x="6" y="13" width="18" height="2.5" rx="1.2" opacity=".78"/>
+      <path d="M22 10C25 6 28 2 25.5 1C24 3.5 22.5 7 21.5 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".55"/>
+      <ellipse cx="15" cy="21" rx="6.5" ry="7" fill="white" stroke="currentColor" stroke-width="1.4"/>
+      <ellipse cx="12.5" cy="19.5" rx="1.15" ry="1.35"/><ellipse cx="17.5" cy="19.5" rx="1.15" ry="1.35"/>
+      <path d="M14.5 21.5L15 23L15.5 21.5" fill="none" stroke="currentColor" stroke-width=".7"/>
+      <path d="M12.5 24.5Q15 26.5 17.5 24.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M8 29.5L10 27.5L12 29.5L14 27.5L15 28.5L16 27.5L18 29.5L20 27.5L22 29.5L22 32.5Q15 35.5 8 32.5Z" opacity=".28"/>
+      <line x1="21.5" y1="32" x2="27.5" y2="45.5" stroke-width="2.2" stroke-linecap="round" opacity=".52"/>
+      <path d="M19 31L23 29L24.5 33Z" opacity=".52"/>
     </svg>`,
-    Q: `<svg viewBox="0 0 30 46" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="15" cy="18" rx="8" ry="8" fill="white" stroke="currentColor" stroke-width="1.5"/>
-      <circle cx="12" cy="17" r="1.3"/><circle cx="18" cy="17" r="1.3"/>
-      <path d="M11.5 20.5Q15 23 18.5 20.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-      <path d="M5 9l3 3 3-4 4 5 4-5 3 4 3-3v3L23 14H7Z" opacity=".8"/>
-      <circle cx="15" cy="8" r="2" opacity=".9"/>
-      <circle cx="9" cy="9" r="1.5" opacity=".7"/>
-      <circle cx="21" cy="9" r="1.5" opacity=".7"/>
-      <path d="M5 30Q5 44 15 44Q25 44 25 30L22 28H8Z" opacity=".18"/>
+    Q: `<svg viewBox="0 0 30 46" fill="currentColor">
+      <path d="M6 14L6 8L11 12L15 5L19 12L24 8L24 14Z" opacity=".88"/>
+      <rect x="6" y="13" width="18" height="2.5" rx=".5" opacity=".78"/>
+      <circle cx="15" cy="7" r="1.6"/><circle cx="9" cy="10.5" r="1.05" opacity=".78"/><circle cx="21" cy="10.5" r="1.05" opacity=".78"/>
+      <ellipse cx="15" cy="23" rx="6.5" ry="7" fill="white" stroke="currentColor" stroke-width="1.4"/>
+      <ellipse cx="12.5" cy="21.5" rx="1.15" ry="1.35"/><ellipse cx="17.5" cy="21.5" rx="1.15" ry="1.35"/>
+      <path d="M11 21L13 23" fill="none" stroke="currentColor" stroke-width=".75"/>
+      <path d="M19 21L17 23" fill="none" stroke="currentColor" stroke-width=".75"/>
+      <path d="M12.5 26Q15 28 17.5 26" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M4 32Q4 46 15 46Q26 46 26 32L23 30H7Z" opacity=".17"/>
+      <circle cx="25.5" cy="28" r="2.6" opacity=".62"/>
+      <path d="M24 26.5L25.5 21.5L27 26.5" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".55" stroke-linecap="round"/>
     </svg>`,
-    K: `<svg viewBox="0 0 30 46" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="15" cy="17" rx="8" ry="8" fill="white" stroke="currentColor" stroke-width="1.5"/>
-      <circle cx="12" cy="16" r="1.3"/><circle cx="18" cy="16" r="1.3"/>
-      <path d="M11.5 19.5Q15 22 18.5 19.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-      <path d="M5 10l2-4 8 3 8-3 2 4-2 2H7Z" opacity=".8"/>
-      <circle cx="15" cy="5" r="2.2" opacity=".9"/>
-      <rect x="13" y="3" width="4" height="1.5" rx=".5" opacity=".6"/>
-      <path d="M5 29Q5 44 15 44Q25 44 25 29L22 27H8Z" opacity=".18"/>
-      <line x1="8" y1="29" x2="22" y2="29" stroke-width="1" opacity=".25"/>
+    K: `<svg viewBox="0 0 30 46" fill="currentColor">
+      <path d="M5 14L5 8L9 11.5L12 5L15 9L18 5L21 11.5L25 8L25 14Z" opacity=".88"/>
+      <rect x="5" y="13" width="20" height="2.5" rx=".5" opacity=".78"/>
+      <circle cx="15" cy="7.5" r="1.6"/><circle cx="9.5" cy="10.5" r="1.05" opacity=".78"/><circle cx="20.5" cy="10.5" r="1.05" opacity=".78"/>
+      <circle cx="6" cy="9" r=".75" opacity=".55"/><circle cx="24" cy="9" r=".75" opacity=".55"/>
+      <ellipse cx="15" cy="23" rx="6.5" ry="7" fill="white" stroke="currentColor" stroke-width="1.4"/>
+      <ellipse cx="12.5" cy="21.5" rx="1.15" ry="1.35"/><ellipse cx="17.5" cy="21.5" rx="1.15" ry="1.35"/>
+      <path d="M10.5 26.5Q13 29.5 15 28Q17 29.5 19.5 26.5" fill="currentColor" opacity=".3"/>
+      <path d="M12.5 25.5Q15 27 17.5 25.5" fill="none" stroke="currentColor" stroke-width=".9" opacity=".75"/>
+      <path d="M4 32Q4 46 15 46Q26 46 26 32L23 30H7Z" opacity=".15"/>
+      <line x1="23.5" y1="29.5" x2="23.5" y2="45.5" stroke-width="2.4" stroke-linecap="round" opacity=".52"/>
+      <path d="M20.5 34.5L26.5 34.5" stroke-width="1.6" stroke-linecap="round" opacity=".52"/>
     </svg>`
   };
   return P[rank] || '';
@@ -1235,6 +1257,17 @@ function renderHand() {
       });
       cont.appendChild(d);
     });
+    if (gs._freshDeal) {
+      gs._freshDeal = false;
+      Array.from(cont.children).forEach((el, i) => {
+        el.classList.add('deal-in');
+        el.style.animationDelay = `${i * 60}ms`;
+        el.addEventListener('animationend', () => {
+          el.classList.remove('deal-in');
+          el.style.animationDelay = '';
+        }, {once: true});
+      });
+    }
     $('btn-send-crib').disabled = (gs.cribSel.length!==2);
 
   } else if (gs.phase==='pegging') {
@@ -1273,10 +1306,17 @@ function renderOpp() {
   for (let i=0; i<remaining; i++) cont.appendChild(makeBack());
 }
 
+const _PILE_ROTS = [-8, 5, -6, 9, -4, 7, -5, 6, -7, 4];
 function updatePileUI() {
   const cards = $('pile-cards');
   cards.innerHTML = '';
-  gs.pile.forEach(c=>cards.appendChild(makeCardEl(c,true)));
+  gs.pile.forEach((c, i) => {
+    const d = makeCardEl(c, true);
+    d.style.transform = `rotate(${_PILE_ROTS[i % _PILE_ROTS.length]}deg)`;
+    if (i > 0) d.style.marginLeft = '-12px';
+    if (i === gs.pile.length - 1) d.classList.add('pile-new');
+    cards.appendChild(d);
+  });
   const v = $('pile-val');
   v.textContent = gs.pileValue;
   v.className   = 'pile-val'+(gs.pileValue===31?' max':gs.pileValue>=27?' hi':'');
