@@ -266,7 +266,7 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 // ═══════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════
-const VERSION = '1.1.6';
+const VERSION = '1.1.7';
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['H','D','C','S'];
 const SYM   = {H:'♥',D:'♦',C:'♣',S:'♠'};
@@ -487,17 +487,34 @@ function openPeer(id) {
 }
 
 function _watchICE(c, label) {
-  // Hook into the underlying RTCPeerConnection to log ICE state transitions.
-  // ICE negotiation is what fails when phones can't reach each other directly.
   const rtc = c.peerConnection;
   if (!rtc) { dbg(`${label}: no peerConnection yet`, 'evt'); return; }
-  rtc.addEventListener('iceconnectionstatechange', () =>
-    dbg(`${label} ICE: ${rtc.iceConnectionState}`, 'evt'));
+  let _failTimer = null;
+  rtc.addEventListener('iceconnectionstatechange', () => {
+    const s = rtc.iceConnectionState;
+    dbg(`${label} ICE: ${s}`, 'evt');
+    if (s === 'disconnected') {
+      toast('Connection unstable…');
+      if (gs.phase !== 'lobby' && gs.phase !== 'game-over') setStatus('Connection unstable — waiting…');
+    } else if (s === 'connected' || s === 'completed') {
+      if (_failTimer) { clearTimeout(_failTimer); _failTimer = null; toast('Reconnected!'); }
+      if (gs.phase !== 'lobby' && gs.phase !== 'game-over') setStatus('');
+    } else if (s === 'failed') {
+      dbg(`${label} ICE failed — attempting restart`, 'err');
+      try { rtc.restartIce(); } catch(e) { dbg('restartIce: '+e, 'err'); }
+      if (!_failTimer) _failTimer = setTimeout(() => {
+        if (gs.phase !== 'lobby' && gs.phase !== 'game-over') {
+          showInfoOverlay('Connection Lost',
+            'The connection has failed. Check your network — both players may need to restart.',
+            'Restart', ()=>location.reload());
+        }
+      }, 18000);
+    }
+  });
   rtc.addEventListener('icegatheringstatechange', () =>
     dbg(`${label} gathering: ${rtc.iceGatheringState}`, 'evt'));
   rtc.addEventListener('connectionstatechange', () =>
     dbg(`${label} conn state: ${rtc.connectionState}`, 'evt'));
-  // Log each candidate type — use addEventListener so PeerJS's own handler isn't replaced
   rtc.addEventListener('icecandidate', e => {
     if (e.candidate) {
       const p = e.candidate.candidate.split(' ');
@@ -630,6 +647,7 @@ function _msgSummary(m) {
     case 'card-played': return cardKey(m.card)+` pv=${m.pileValue} pts=${m.pts}`;
     case 'opp-played':  return cardKey(m.card)+` pv=${m.pileValue} pts=${m.pts}`;
     case 'count-declare-req': return `owner=${m.owner} isCrib=${m.isCrib}`;
+    case 'count-watching':   return `owner=${m.owner} isCrib=${m.isCrib}`;
     case 'count-claim':  return `amount=${m.amount}`;
     case 'count-reveal': return `owner=${m.owner} correct=${m.correct} claimed=${m.claimed}`;
     case 'score-update':return `host=${m.hostScore} guest=${m.guestScore}`;
@@ -764,6 +782,15 @@ function handleGuestMsg(m) {
       updatePileUI();
       break;
 
+    case 'count-watching': {
+      gs.phase = 'counting';
+      el('pile-sec').style.display = 'none';
+      hideBtn('btn-go'); hideBtn('btn-send-crib');
+      const wlbl = m.isCrib ? "Opponent is counting the Crib…" : "Opponent is counting their hand…";
+      showCountDeclareOverlay(wlbl, m.hand, m.starter, false, null);
+      break;
+    }
+
     case 'count-declare-req': {
       gs.phase = 'counting';
       el('pile-sec').style.display = 'none';
@@ -773,7 +800,6 @@ function handleGuestMsg(m) {
         ? (isMe ? 'Count the Crib (yours)' : "Count the Crib (opponent's)")
         : (isMe ? 'Count your hand' : "Opponent's hand");
       showCountDeclareOverlay(lbl, m.hand, m.starter, isMe, isMe ? claimed => {
-        // Show waiting state while host processes
         $('ov-title').textContent = 'Declared: ' + claimed;
         $('ov-breakdown').innerHTML = '<p style="color:#aaa;font-size:13px;text-align:center;margin:12px 0">Waiting for result…</p>';
         $('ov-ok').style.display = 'none';
@@ -1073,6 +1099,7 @@ function hostNextCount() {
     gs._countCtx = {hand, starter:gs.starter, owner, isCrib:false};
     if (ndIsHost) {
       showCountDeclareOverlay('Count your hand (non-dealer)', hand, gs.starter, true, hostProcessClaim);
+      send({type:'count-watching', owner, hand, starter:gs.starter, isCrib:false});
     } else {
       showCountDeclareOverlay("Opponent's hand (non-dealer)", hand, gs.starter, false, null);
       send({type:'count-declare-req', owner, hand, starter:gs.starter, isCrib:false});
@@ -1085,6 +1112,7 @@ function hostNextCount() {
     gs._countCtx = {hand, starter:gs.starter, owner, isCrib:false};
     if (dIsHost) {
       showCountDeclareOverlay('Count your hand (dealer)', hand, gs.starter, true, hostProcessClaim);
+      send({type:'count-watching', owner, hand, starter:gs.starter, isCrib:false});
     } else {
       showCountDeclareOverlay("Opponent's hand (dealer)", hand, gs.starter, false, null);
       send({type:'count-declare-req', owner, hand, starter:gs.starter, isCrib:false});
@@ -1095,6 +1123,7 @@ function hostNextCount() {
     gs._countCtx = {hand:gs.crib, starter:gs.starter, owner, isCrib:true};
     if (gs.iAmDealer) {
       showCountDeclareOverlay('Count the Crib (yours)', gs.crib, gs.starter, true, hostProcessClaim);
+      send({type:'count-watching', owner, hand:gs.crib, starter:gs.starter, isCrib:true});
     } else {
       showCountDeclareOverlay("Count the Crib (opponent's)", gs.crib, gs.starter, false, null);
       send({type:'count-declare-req', owner, hand:gs.crib, starter:gs.starter, isCrib:true});
