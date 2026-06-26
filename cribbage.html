@@ -1589,8 +1589,8 @@ function showCountRevealOverlay(title, hand, starter, claimed, correct, parts, m
   const v = document.createElement('div');
   v.className='count-verdict'; v.innerHTML=html;
   bd.appendChild(v);
-  $('ov-ok').textContent = onContinue ? 'Continue →' : 'OK';
-  $('ov-ok').style.display = '';
+  $('ov-ok').textContent = 'Continue →';
+  $('ov-ok').style.display = onContinue ? '' : 'none';
   $('overlay').classList.add('show');
   $('ov-ok').onclick = ()=>{ $('overlay').classList.remove('show'); if(onContinue) onContinue(); };
 }
