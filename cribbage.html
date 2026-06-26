@@ -154,6 +154,7 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
   <p class="sub">Two players · Two phones</p>
   <button class="btn btn-p" id="btn-new">New Game</button>
   <button class="btn btn-s" id="btn-join">Join Game</button>
+  <button class="btn btn-s" id="btn-resume" style="display:none">Resume game</button>
   <hr class="div">
   <p class="note">Needs internet briefly to connect</p>
   <p class="note" id="version-label" style="color:#333;margin-top:4px"></p>
@@ -266,7 +267,7 @@ h1{font-size:32px;font-weight:800;letter-spacing:-.5px}
 // ═══════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════
-const VERSION = '1.1.7';
+const VERSION = '1.1.8';
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['H','D','C','S'];
 const SYM   = {H:'♥',D:'♦',C:'♣',S:'♠'};
@@ -468,6 +469,35 @@ const gs = {
 };
 
 // ═══════════════════════════════════════════════════════════
+//  SESSION PERSISTENCE  (rejoin after browser refresh)
+// ═══════════════════════════════════════════════════════════
+let _roomCode = '';
+
+function _saveSession(code, role) {
+  try {
+    localStorage.setItem('crb_session', JSON.stringify({
+      code, role,
+      myScore: gs.myScore, oppScore: gs.oppScore, iAmDealer: gs.iAmDealer,
+      savedAt: Date.now()
+    }));
+  } catch(e) {}
+}
+
+function _loadSession() {
+  try {
+    const raw = localStorage.getItem('crb_session');
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (Date.now() - s.savedAt > 7200000) { localStorage.removeItem('crb_session'); return null; }
+    return s;
+  } catch(e) { return null; }
+}
+
+function _clearSession() {
+  try { localStorage.removeItem('crb_session'); } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════
 //  CONNECTION
 // ═══════════════════════════════════════════════════════════
 function genCode() {
@@ -527,7 +557,9 @@ function _watchICE(c, label) {
 }
 
 async function createGame() {
+  _clearSession();
   const code = genCode();
+  _roomCode = code;
   dbg(`createGame code=${code}`, 'evt');
   showScreen('hosting');
   $('game-code').textContent = code;
@@ -535,6 +567,7 @@ async function createGame() {
     myPeer = await openPeer('crb-'+code);
     myPeer.on('connection', c => {
       dbg(`incoming connection from ${c.peer}`, 'evt');
+      if (conn?.open) { c.close(); return; }
       _watchICE(c, 'host');
       // Wait for the WebRTC data channel to be fully open before sending.
       // The 'connection' event fires before ICE negotiation completes.
@@ -544,6 +577,7 @@ async function createGame() {
         isHost = true;
         gs.iAmDealer = true;
         gs.myScore = 0; gs.oppScore = 0;
+        _saveSession(code, 'host');
         showScreen('game');
         setTimeout(()=>hostDeal(), 300);
       });
@@ -588,6 +622,8 @@ async function joinGame(code) {
       opened = true;
       clearTimeout(t5); clearTimeout(t12);
       dbg('guest: data channel open', 'evt');
+      _roomCode = code;
+      _saveSession(code, 'guest');
       showScreen('game');
       setStatus('Connected — waiting for cards…');
     });
@@ -608,6 +644,49 @@ async function joinGame(code) {
     $('join-err').textContent = 'Error: '+e.message;
     $('btn-connect').disabled = false;
   }
+}
+
+async function resumeAsHost(sess) {
+  const code = sess.code;
+  _roomCode = code;
+  dbg(`resumeAsHost code=${code}`, 'evt');
+  showScreen('hosting');
+  $('game-code').textContent = code;
+  try {
+    myPeer = await openPeer('crb-'+code);
+    myPeer.on('connection', c => {
+      dbg(`incoming reconnection from ${c.peer}`, 'evt');
+      if (conn?.open) { c.close(); return; }
+      _watchICE(c, 'host');
+      c.on('open', () => {
+        dbg('host: reconnected — resuming game', 'evt');
+        setupConn(c);
+        isHost = true;
+        gs.iAmDealer = sess.iAmDealer;
+        gs.myScore   = sess.myScore;
+        gs.oppScore  = sess.oppScore;
+        showScreen('game');
+        updateScores();
+        setTimeout(()=>hostDeal(), 300);
+      });
+      c.on('error', e => dbg(`host conn error: ${e}`, 'err'));
+    });
+  } catch(e) {
+    dbg(`resumeAsHost failed: ${e.message}`, 'err');
+    const msg = (e.type === 'unavailable-id')
+      ? 'Room still registering — wait a moment, then try again.'
+      : 'Could not resume. Check your connection or start a new game.';
+    alert(msg);
+    showScreen('lobby');
+  }
+}
+
+function resumeAsGuest(sess) {
+  _roomCode = sess.code;
+  showScreen('joining');
+  $('join-input').value = sess.code;
+  $('join-err').textContent = 'Reconnecting…';
+  joinGame(sess.code);
 }
 
 function setupConn(c) {
@@ -830,8 +909,9 @@ function handleGuestMsg(m) {
       $('overlay').classList.remove('show');
       gs.myScore  = m.guestScore;
       gs.oppScore = m.hostScore;
-      updateScores();
       gs.phase = 'game-over';
+      _clearSession();
+      updateScores();
       if (m.winner==='guest')
         showInfoOverlay('You Win! 🎉', `Final score — You: ${m.guestScore}, Opponent: ${m.hostScore}`, 'Play Again', ()=>location.reload());
       else
@@ -1167,6 +1247,7 @@ function hostNextHand() {
 function checkWin() {
   if (gs.myScore>=WIN) {
     gs.phase='game-over';
+    _clearSession();
     send({type:'game-over', winner:'host', hostScore:gs.myScore, guestScore:gs.oppScore});
     showInfoOverlay('You Win! 🎉',
       `Final score — You: ${gs.myScore}, Opponent: ${gs.oppScore}`,
@@ -1175,6 +1256,7 @@ function checkWin() {
   }
   if (gs.oppScore>=WIN) {
     gs.phase='game-over';
+    _clearSession();
     send({type:'game-over', winner:'guest', hostScore:gs.myScore, guestScore:gs.oppScore});
     showInfoOverlay('Opponent Wins',
       `Final score — You: ${gs.myScore}, Opponent: ${gs.oppScore}`,
@@ -1246,6 +1328,9 @@ function updateScores() {
   $('opp-score').textContent = gs.oppScore;
   $('my-dealer').classList.toggle('show',  gs.iAmDealer);
   $('opp-dealer').classList.toggle('show', !gs.iAmDealer);
+  if (_roomCode && gs.phase !== 'lobby' && gs.phase !== 'game-over') {
+    _saveSession(_roomCode, isHost ? 'host' : 'guest');
+  }
 }
 
 function _facePortrait(rank) {
@@ -1564,6 +1649,23 @@ $('dbg-btn').addEventListener('click', ()=>{
 });
 $('dbg-close').addEventListener('click', ()=>$('dbg-panel').classList.remove('show'));
 $('dbg-clear').addEventListener('click', ()=>{ _log.length=0; $('dbg-log').innerHTML=''; });
+
+// Show resume button if a recent session exists
+(function() {
+  const sess = _loadSession();
+  if (sess) {
+    const btn = $('btn-resume');
+    btn.textContent = `Resume game (${sess.code})`;
+    btn.style.display = '';
+  }
+})();
+
+$('btn-resume').addEventListener('click', ()=>{
+  const sess = _loadSession();
+  if (!sess) { showScreen('lobby'); return; }
+  if (sess.role === 'host') resumeAsHost(sess);
+  else resumeAsGuest(sess);
+});
 
 dbg(`Cribbage v${VERSION} loaded`, 'info');
 $('version-label').textContent = 'v'+VERSION;
