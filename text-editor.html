@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Text Editor – Devfusion</title>
+<link rel="icon" type="image/png" href="favicon.png" />
+<style>
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('fonts/inter-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('fonts/inter-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0f1117;
+    --ink-mid: #3a3d47;
+    --ink-muted: #7a7f8e;
+    --surface: #fff;
+    --surface-2: #f8f8f7;
+    --accent: #ff6600;
+    --accent-hover: #e55a00;
+    --accent-light: #fff3eb;
+    --border: #e8e8e6;
+    --radius: 6px;
+    --font: 'Inter', system-ui, sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: var(--font);
+    color: var(--ink);
+    background: var(--surface-2);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    /* dvh keeps the layout correct on Android when the on-screen keyboard opens */
+    height: 100dvh;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  header h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  header h1 a { color: var(--ink); text-decoration: none; }
+  header h1 span { color: var(--accent); }
+
+  #filename {
+    flex: 1;
+    min-width: 90px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-mid);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 10px;
+  }
+  #filename:focus { outline: 2px solid var(--accent-light); border-color: var(--accent); }
+
+  #dot {
+    display: none;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); flex-shrink: 0;
+  }
+  body.dirty #dot { display: block; }
+
+  .toolbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: var(--font);
+    font-size: 13.5px;
+    font-weight: 500;
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button:active { background: var(--accent-light); }
+  button.primary {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  button.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
+
+  main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    padding: 0.75rem;
+  }
+
+  #editor {
+    flex: 1;
+    resize: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 1rem;
+    -webkit-appearance: none;
+  }
+  #editor:focus { outline: 2px solid var(--accent-light); border-color: var(--accent); }
+
+  .statusbar {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+    font-size: 12px;
+    color: var(--ink-muted);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  #toast {
+    position: fixed;
+    left: 50%; bottom: 1.25rem;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--ink); color: #fff;
+    font-size: 13px; font-weight: 500;
+    padding: 10px 18px; border-radius: var(--radius);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 10;
+    max-width: calc(100% - 2rem);
+    text-align: center;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  input[type="file"] { display: none; }
+
+  @media (max-width: 480px) {
+    header { padding: 0.6rem 0.75rem; }
+    .toolbar { padding: 0.5rem 0.75rem; }
+    main { padding: 0.5rem; }
+    button { padding: 9px 12px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><a href="index.html">Devfusion <span>Editor</span></a></h1>
+  <span id="dot" aria-hidden="true"></span>
+  <input id="filename" type="text" value="untitled.txt" aria-label="File name" autocomplete="off" autocapitalize="off" spellcheck="false">
+</header>
+
+<div class="toolbar">
+  <button id="btn-open">Open…</button>
+  <button id="btn-save" class="primary">Save</button>
+  <button id="btn-copy">Copy all</button>
+  <button id="btn-paste">Paste</button>
+  <button id="btn-new">New</button>
+  <input id="file-input" type="file" accept=".txt,.md,.markdown,.csv,.log,.json,.xml,.html,.htm,.css,.js,.ts,.yml,.yaml,.ini,.conf,text/*">
+</div>
+
+<main>
+  <textarea id="editor" placeholder="Open a file, or just start typing…" autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>
+</main>
+
+<div class="statusbar">
+  <span id="counts">0 words · 0 characters</span>
+  <span id="savehint">Not saved yet</span>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  const editor = document.getElementById('editor');
+  const filenameInput = document.getElementById('filename');
+  const fileInput = document.getElementById('file-input');
+  const counts = document.getElementById('counts');
+  const savehint = document.getElementById('savehint');
+  const toast = document.getElementById('toast');
+
+  const DRAFT_KEY = 'devfusion-editor-draft';
+  const DRAFT_NAME_KEY = 'devfusion-editor-draft-name';
+  let dirty = false;
+  let toastTimer = null;
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+  }
+
+  function setDirty(state) {
+    dirty = state;
+    document.body.classList.toggle('dirty', dirty);
+  }
+
+  function updateCounts() {
+    const text = editor.value;
+    const chars = text.length;
+    const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+    counts.textContent = words + ' words · ' + chars + ' characters';
+  }
+
+  function saveDraft() {
+    try {
+      localStorage.setItem(DRAFT_KEY, editor.value);
+      localStorage.setItem(DRAFT_NAME_KEY, filenameInput.value);
+    } catch (e) { /* storage unavailable, ignore */ }
+  }
+
+  let draftTimer = null;
+  function scheduleDraftSave() {
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(saveDraft, 400);
+  }
+
+  editor.addEventListener('input', () => {
+    setDirty(true);
+    updateCounts();
+    scheduleDraftSave();
+  });
+  filenameInput.addEventListener('input', () => {
+    setDirty(true);
+    scheduleDraftSave();
+  });
+
+  // Restore an unsaved draft left over from a previous visit (Android
+  // frequently discards background tabs, so this is the difference
+  // between losing an in-progress edit and not).
+  window.addEventListener('DOMContentLoaded', () => {
+    try {
+      const draft = localStorage.getItem(DRAFT_KEY);
+      const draftName = localStorage.getItem(DRAFT_NAME_KEY);
+      if (draft) {
+        editor.value = draft;
+        if (draftName) filenameInput.value = draftName;
+        setDirty(true);
+        showToast('Restored your last unsaved draft');
+      }
+    } catch (e) { /* storage unavailable, ignore */ }
+    updateCounts();
+  });
+
+  document.getElementById('btn-new').addEventListener('click', () => {
+    if (dirty && !confirm('Discard current text and start a new file?')) return;
+    editor.value = '';
+    filenameInput.value = 'untitled.txt';
+    setDirty(false);
+    updateCounts();
+    saveDraft();
+    editor.focus();
+  });
+
+  document.getElementById('btn-open').addEventListener('click', () => {
+    if (dirty && !confirm('Discard current text and open a different file?')) return;
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      editor.value = reader.result;
+      filenameInput.value = file.name;
+      setDirty(false);
+      updateCounts();
+      saveDraft();
+      showToast('Opened ' + file.name);
+    };
+    reader.onerror = () => showToast('Could not read that file');
+    reader.readAsText(file);
+    fileInput.value = '';
+  });
+
+  document.getElementById('btn-save').addEventListener('click', () => {
+    const name = filenameInput.value.trim() || 'untitled.txt';
+    const blob = new Blob([editor.value], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setDirty(false);
+    savehint.textContent = 'Saved as ' + name;
+    showToast('Saved — check your Downloads folder');
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(editor.value);
+      showToast('Copied to clipboard');
+    } catch (e) {
+      editor.focus();
+      editor.select();
+      document.execCommand('copy');
+      showToast('Copied to clipboard');
+    }
+  });
+
+  document.getElementById('btn-paste').addEventListener('click', async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      insertAtCursor(text);
+      showToast('Pasted');
+    } catch (e) {
+      showToast('Tap the editor and use your keyboard\'s paste instead');
+      editor.focus();
+    }
+  });
+
+  function insertAtCursor(text) {
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const value = editor.value;
+    editor.value = value.slice(0, start) + text + value.slice(end);
+    const pos = start + text.length;
+    editor.setSelectionRange(pos, pos);
+    setDirty(true);
+    updateCounts();
+    scheduleDraftSave();
+  }
+
+  window.addEventListener('beforeunload', (e) => {
+    if (dirty) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+</script>
+</body>
+</html>
