@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What's New — Aber Comedy Festival App</title>
+<link rel="icon" type="image/png" href="favicon.png" />
+<style>
+  @font-face {
+    font-family: 'Big Shoulders Display';
+    src: url(fonts/big-shoulders-display.woff2) format('woff2');
+    font-weight: 700 900;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Work Sans';
+    src: url(fonts/work-sans.woff2) format('woff2');
+    font-weight: 400 600;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    --bg: #10171F;
+    --bg-2: #0C1218;
+    --surface: #1B2733;
+    --surface-2: #223243;
+    --text: #EDF3F3;
+    --text-dim: #9FB0BD;
+    --accent: #EE6C43;
+    --accent-ink: #2A0F06;
+    --accent-2: #8FC9BE;
+    --border: rgba(237,243,243,0.10);
+    --shadow: rgba(4,8,12,0.55);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #EDF1EF;
+      --bg-2: #E3E9E6;
+      --surface: #FFFFFF;
+      --surface-2: #F5F7F6;
+      --text: #16222B;
+      --text-dim: #4C5B65;
+      --accent: #D8572F;
+      --accent-ink: #FFF3EE;
+      --accent-2: #2F7A6C;
+      --border: rgba(22,34,43,0.12);
+      --shadow: rgba(22,34,43,0.16);
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10171F; --bg-2: #0C1218; --surface: #1B2733; --surface-2: #223243;
+    --text: #EDF3F3; --text-dim: #9FB0BD; --accent: #EE6C43; --accent-ink: #2A0F06;
+    --accent-2: #8FC9BE; --border: rgba(237,243,243,0.10); --shadow: rgba(4,8,12,0.55);
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --bg: #EDF1EF; --bg-2: #E3E9E6; --surface: #FFFFFF; --surface-2: #F5F7F6;
+    --text: #16222B; --text-dim: #4C5B65; --accent: #D8572F; --accent-ink: #FFF3EE;
+    --accent-2: #2F7A6C; --border: rgba(22,34,43,0.12); --shadow: rgba(22,34,43,0.16);
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  a { color: inherit; }
+  h1, h2, h3 {
+    font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    text-wrap: balance;
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+  p { margin: 0; }
+  img { max-width: 100%; display: block; }
+  :focus-visible { outline: 3px solid var(--accent-2); outline-offset: 3px; }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 0 0;
+    font-family: 'Work Sans', sans-serif;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: 0.02em; }
+  .brand-mark {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+  .brand-name { font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .dates { font-size: 0.85rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative;
+    padding: 64px 0 40px;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: -220px; right: -180px;
+    width: 620px; height: 620px;
+    background: radial-gradient(circle, color-mix(in srgb, var(--accent) 30%, transparent) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .eyebrow-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 26px;
+  }
+  .eyebrow-chip .dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  }
+  .hero h1 {
+    font-size: clamp(2.6rem, 6vw, 4.6rem);
+    line-height: 0.96;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero-sub {
+    margin-top: 22px;
+    max-width: 46ch;
+    font-size: 1.1rem;
+    color: var(--text-dim);
+  }
+
+  .phone {
+    position: relative;
+    width: min(300px, 78vw);
+    border-radius: 34px;
+    padding: 12px;
+    background: linear-gradient(160deg, var(--surface-2), var(--surface));
+    box-shadow: 0 30px 60px -20px var(--shadow), 0 2px 0 var(--border) inset;
+    border: 1px solid var(--border);
+  }
+  .phone-screen {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #0C1218;
+    aspect-ratio: 480 / 1067;
+  }
+  .phone-screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .phone-notch {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 84px; height: 20px; border-radius: 12px; background: #0C1218;
+    z-index: 2;
+  }
+  .hero-phone-wrap {
+    display: flex; justify-content: center;
+    transform: rotate(3deg);
+  }
+  .hero-phone-wrap .phone { box-shadow: 0 40px 80px -24px var(--shadow), 0 2px 0 var(--border) inset; }
+
+  /* ---------- stat strip ---------- */
+  .stat-strip {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-top: 56px;
+  }
+  .stat-strip .wrap {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 22px 28px;
+  }
+  .stat {
+    text-align: center;
+    border-left: 1px solid var(--border);
+    padding: 4px 8px;
+  }
+  .stat:first-child { border-left: none; }
+  .stat b {
+    display: block;
+    font-family: 'Big Shoulders Display', sans-serif;
+    font-weight: 800;
+    font-size: 1.9rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat span {
+    font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim);
+  }
+
+  /* ---------- intro ---------- */
+  .intro {
+    padding: 72px 0 8px;
+  }
+  .intro p {
+    max-width: 62ch;
+    font-size: 1.15rem;
+    color: var(--text-dim);
+  }
+  .intro p + p { margin-top: 16px; }
+  .intro strong { color: var(--text); font-weight: 600; }
+
+  /* ---------- feature rows ---------- */
+  .features { padding: 40px 0 20px; display: flex; flex-direction: column; gap: 8px; }
+  .feature {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 56px;
+    align-items: center;
+    padding: 56px 0;
+    border-top: 1px solid var(--border);
+  }
+  .feature:last-child { border-bottom: 1px solid var(--border); }
+  .feature.reverse { grid-template-columns: 1.15fr 0.85fr; }
+  .feature.reverse .feature-media { order: 2; }
+  .feature.reverse .feature-copy { order: 1; }
+  .feature-media { display: flex; justify-content: center; }
+  .feature:nth-of-type(odd) .phone-tilt { transform: rotate(-2.5deg); }
+  .feature:nth-of-type(even) .phone-tilt { transform: rotate(2.5deg); }
+  .feature-eyebrow {
+    display: inline-block;
+    font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-2);
+    margin-bottom: 14px;
+  }
+  .feature h2 {
+    font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+    line-height: 1.02;
+  }
+  .feature-copy p {
+    margin-top: 16px;
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    max-width: 42ch;
+  }
+
+  /* ---------- closing ---------- */
+  .closing {
+    padding: 90px 0 40px;
+    text-align: center;
+  }
+  .closing h2 {
+    font-size: clamp(2rem, 4.5vw, 3.2rem);
+    max-width: 20ch;
+    margin: 0 auto;
+  }
+  .closing p {
+    margin: 20px auto 0;
+    max-width: 48ch;
+    color: var(--text-dim);
+    font-size: 1.05rem;
+  }
+  .closing .store-note {
+    margin-top: 34px;
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 22px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 28px 0 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.85rem; color: var(--text-dim);
+  }
+  footer a { color: var(--text-dim); text-decoration: underline; text-underline-offset: 3px; }
+  footer a:hover { color: var(--accent-2); }
+
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+    .hero-phone-wrap { order: -1; transform: rotate(0deg); }
+    .stat-strip .wrap { grid-template-columns: repeat(2, 1fr); row-gap: 18px; }
+    .stat:nth-child(3) { border-left: none; }
+    .feature, .feature.reverse {
+      grid-template-columns: 1fr;
+      gap: 28px;
+      padding: 40px 0;
+    }
+    .feature .feature-media, .feature.reverse .feature-media { order: -1; }
+    .feature .feature-copy, .feature.reverse .feature-copy { order: 2; }
+    .phone-tilt { transform: none !important; }
+    footer { flex-direction: column; gap: 8px; text-align: center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap topbar">
+  <div class="brand">
+    <span class="brand-mark"></span>
+    <span class="brand-name">Aberystwyth Comedy Festival</span>
+  </div>
+  <div class="dates">2–4 Oct 2026</div>
+</div>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow-chip"><span class="dot"></span>October update — live now</span>
+      <h1>The app just had a proper <em>seaside</em> makeover.</h1>
+      <p class="hero-sub">Same festival, same laughs — but the app finally keeps up. New look, real-time group planning, and the map's where you'd actually expect it. Here's what changed.</p>
+    </div>
+    <div class="hero-phone-wrap">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="phone-screen"><img src="images/hero.jpg" alt="New Aber Comedy Festival app home screen" /></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stat-strip">
+  <div class="wrap">
+    <div class="stat"><b>50</b><span>Shows</span></div>
+    <div class="stat"><b>7</b><span>Venues</span></div>
+    <div class="stat"><b>3</b><span>Days</span></div>
+    <div class="stat"><b>6</b><span>New things</span></div>
+  </div>
+</div>
+
+<section class="intro">
+  <div class="wrap">
+    <p>We rebuilt a fair chunk of the app for this festival — not because it was broken, but because "good enough" isn't really the standard when the whole point is not missing the show everyone's talking about on Monday.</p>
+    <p><strong>Six things are properly new.</strong> Scroll on for the rundown.</p>
+  </div>
+</section>
+
+<section class="features wrap">
+
+  <div class="feature">
+    <div class="feature-media">
+      <div class="phone phone-tilt">
+        <div class="phone-notch"></div>
+        <div class="phone-screen"><img src="images/hero.jpg" alt="Redesigned hub screen with festival artwork and navigation grid" /></div>
+      </div>
+    </div>
+    <div class="feature-copy">
+      <span class="feature-eyebrow">Interface</span>
+      <h2>A new look, top to bottom</h2>
+      <p>We tore up the old screens and started again — a hub that finally looks like it belongs to a comedy festival by the sea, clearer type throughout, and a layout that doesn't fight you in a dark venue at 11pm.</p>
+    </div>
+  </div>
+
+  <div class="feature reverse">
+    <div class="feature-media">
+      <div class="phone phone-tilt">
+        <div class="phone-notch"></div>
+        <div class="phone-screen"><img src="images/groups.jpg" alt="Group planning screen showing a shared room code and members' picks" /></div>
+      </div>
+    </div>
+    <div class="feature-copy">
+      <span class="feature-eyebrow">Groups</span>
+      <h2>Plan together, in real time</h2>
+      <p>Start a room, share the six-letter code, and watch your group's picks land on your screen the moment someone taps favourite. No more "wait, are we doing the 8pm or the 9:30?" texts.</p>
+    </div>
+  </div>
+
+  <div class="feature">
+    <div class="feature-media">
+      <div class="phone phone-tilt">
+        <div class="phone-notch"></div>
+        <div class="phone-screen"><img src="images/tickets.jpg" alt="Tickets Bought tab listing purchased shows" /></div>
+      </div>
+    </div>
+    <div class="feature-copy">
+      <span class="feature-eyebrow">Tickets</span>
+      <h2>Know what's actually booked</h2>
+      <p>Favouriting a show and having a ticket for it are different things — the app finally agrees. Mark what you've bought and it shows up everywhere, so your plans and your bookings are on the same page.</p>
+    </div>
+  </div>
+
+  <div class="feature reverse">
+    <div class="feature-media">
+      <div class="phone phone-tilt">
+        <div class="phone-notch"></div>
+        <div class="phone-screen"><img src="images/schedule.jpg" alt="Timetable schedule view with venues as rows and time as columns" /></div>
+      </div>
+    </div>
+    <div class="feature-copy">
+      <span class="feature-eyebrow">Schedule</span>
+      <h2>See your whole weekend at a glance</h2>
+      <p>Switch to the timetable view to see every show laid out by venue and hour — then filter it down to just your favourites, just what's booked, or just what your group's going to.</p>
+    </div>
+  </div>
+
+  <div class="feature">
+    <div class="feature-media">
+      <div class="phone phone-tilt">
+        <div class="phone-notch"></div>
+        <div class="phone-screen"><img src="images/venues.jpg" alt="List of shows running at a specific venue" /></div>
+      </div>
+    </div>
+    <div class="feature-copy">
+      <span class="feature-eyebrow">Venues</span>
+      <h2>Every venue, every show</h2>
+      <p>Tap into a venue and see its full running order — handy for working out what's on next door once you've necked your interval coffee.</p>
+    </div>
+  </div>
+
+  <div class="feature reverse">
+    <div class="feature-media">
+      <div class="phone phone-tilt">
+        <div class="phone-notch"></div>
+        <div class="phone-screen"><img src="images/maps.jpg" alt="Venue detail page with an embedded mini map" /></div>
+      </div>
+    </div>
+    <div class="feature-copy">
+      <span class="feature-eyebrow">Maps</span>
+      <h2>The map found a better home</h2>
+      <p>It used to live behind a button on the home screen; now it's built into every venue page, so you can see exactly where you're headed without leaving what you were looking at.</p>
+    </div>
+  </div>
+
+</section>
+
+<section class="closing">
+  <div class="wrap">
+    <h2>Open the app — it's already there.</h2>
+    <p>If you've already got the Aber Comedy Festival app, the update lands next time you're online. New to the festival? Find it under "Aberystwyth Comedy Festival" in the App Store and Google Play.</p>
+  </div>
+</section>
+
+<footer class="wrap">
+  <span>Aberystwyth Comedy Festival · 2–4 October 2026</span>
+  <span>Built by <a href="https://devfusion.net">devfusion</a></span>
+</footer>
+
+</body>
+</html>
