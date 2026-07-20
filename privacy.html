@@ -106,6 +106,12 @@
     font-size: 1.0625rem; color: var(--ink-mid); font-weight: 300;
     max-width: 540px; line-height: 1.75;
   }
+  .page-header .updated {
+    display: inline-block; margin-top: 1.25rem; font-size: 13px;
+    color: var(--ink-muted); background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 5px 14px;
+  }
 
   /* ── LEGAL CONTENT ── */
   .legal-section { padding: 4rem 2rem 6rem; }
@@ -119,9 +125,22 @@
     font-size: 1rem; color: var(--ink-mid); font-weight: 300;
     line-height: 1.8; margin-bottom: 1.25rem;
   }
+  .legal-inner ul { margin: 0 0 1.25rem 1.25rem; }
+  .legal-inner li {
+    font-size: 1rem; color: var(--ink-mid); font-weight: 300;
+    line-height: 1.8; margin-bottom: 0.5rem;
+  }
+  .legal-inner li strong { color: var(--ink); font-weight: 600; }
   .legal-inner a { color: var(--accent); text-decoration: none; }
   .legal-inner a:hover { text-decoration: underline; }
   .legal-inner address { font-style: normal; }
+  .legal-inner .summary-box {
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1.5rem 1.75rem;
+    margin-bottom: 2.5rem;
+  }
+  .legal-inner .summary-box p { margin-bottom: 0; }
+  .legal-inner .summary-box p + p { margin-top: 0.9rem; }
 
   /* ── FOOTER ── */
   footer { background: #080a10; color: rgba(255,255,255,0.3); padding: 2rem; text-align: center; font-size: 13px; }
@@ -182,7 +201,8 @@
   <div class="page-header-inner">
     <div class="page-label fade-up">Legal</div>
     <h1 class="fade-up delay-1">Privacy Policy</h1>
-    <p class="fade-up delay-2">For our Comedy Festival apps.</p>
+    <p class="fade-up delay-2">For our Comedy Festival apps — Mach Comedy Festival and Aber Comedy Festival.</p>
+    <span class="updated fade-up delay-2">Last updated 20 July 2026</span>
   </div>
 </header>
 
@@ -190,16 +210,40 @@
 <section class="legal-section">
   <div class="legal-inner">
 
-    <p class="fade-up">There's not a lot to say here other than we don't collect, use or share anything. No app usage, no pages visited, no personal information, no anonymous information.</p>
+    <div class="summary-box fade-up">
+      <p>Browsing the festival programme, favouriting shows and marking tickets as bought all work without an account, and that information stays on your device. The only feature that shares any data off your device is the optional <strong>Group Planning</strong> tool, and even then it's limited to a nickname and your show selections, visible only to people you share your room code with.</p>
+      <p>The sections below cover exactly what each part of the app does, in plain terms.</p>
+    </div>
 
-    <p class="fade-up">Any external linked websites operate under their own privacy policies, outside of our app's control.</p>
+    <h2 class="fade-up">Show and festival information</h2>
+    <p class="fade-up">The festival programme, venue details and festival info pages are downloaded from our own file storage and cached on your device so the app still works with no signal. These are one-way, public data requests — nothing about you or your device is attached beyond what any web request sends automatically.</p>
 
-    <h2 class="fade-up">Exception: Google Maps</h2>
-    <p class="fade-up">One notable exception exists. Our apps incorporate Google Maps functionality, which we think is valuable for festival navigation. As for what data that involves &mdash; who knows what Google actually collects, but it's Google, so they are bound to collect something.</p>
-    <p class="fade-up">If you'd like more detail, see Google's own privacy documentation at <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a>.</p>
+    <h2 class="fade-up">Favourites and tickets bought</h2>
+    <p class="fade-up">Your favourited shows and any shows you've marked as tickets bought are saved locally on your device only. We never see this information and it isn't sent anywhere, unless you turn on Group Planning (below).</p>
 
-    <h2 class="fade-up">Cookies</h2>
-    <p class="fade-up">This site uses cookies from Google to deliver services and analyse traffic, with some information shared with Google in the process. Continued use of the site constitutes acceptance of this cookie policy.</p>
+    <h2 class="fade-up">Group Planning</h2>
+    <p class="fade-up">Group Planning is an optional feature for seeing what your friends are going to. If you create or join a group using a 6-character room code, the following is stored in Google's Firebase (Cloud Firestore) service so it can sync in real time between everyone in that room:</p>
+    <ul class="fade-up">
+      <li><strong>A random device ID</strong> — generated on your phone, not linked to your name, email or any account.</li>
+      <li><strong>The display name you type in</strong> — this is whatever you choose to enter; it doesn't have to be your real name.</li>
+      <li><strong>Your favourited and bought shows</strong> — the same list already stored on your device.</li>
+    </ul>
+    <p class="fade-up">This information is visible to anyone with your room's code, for as long as that room exists. Leaving a group removes your entry from it. If you'd like a room's data removed entirely, contact us below and we'll delete it. Because this data is hosted on Google's infrastructure, Google's own privacy policy also applies: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a>.</p>
+
+    <h2 class="fade-up">Location</h2>
+    <p class="fade-up">The venue map can show your current position as a blue dot, to help you find your way around. This uses your device's GPS and is processed entirely on your phone to draw the map — we never receive, transmit or store your location. You'll be asked to allow this the first time, and you can decline without losing any other feature.</p>
+
+    <h2 class="fade-up">Maps</h2>
+    <p class="fade-up">Venue maps are drawn using OpenStreetMap, a free, open map service — not Google Maps. Loading a map means your device requests tiles directly from OpenStreetMap's servers, which, like any web request, will see your IP address. That's between you and them; see their policy at <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">osmfoundation.org/wiki/Privacy_Policy</a>.</p>
+
+    <h2 class="fade-up">External links</h2>
+    <p class="fade-up">Buy Tickets links, and links out to performers' and venues' own websites and social media, take you outside the app to third-party sites. Those operate under their own privacy policies, outside our control.</p>
+
+    <h2 class="fade-up">Cookies on this website</h2>
+    <p class="fade-up">This website (devfusion.net, not the apps themselves) uses cookies from Google to deliver services and analyse traffic, with some information shared with Google in the process. Continued use of the site constitutes acceptance of this cookie policy.</p>
+
+    <h2 class="fade-up">Your choices</h2>
+    <p class="fade-up">You can clear favourites and bought tickets at any time from within the app. You can leave a Group Planning room at any time, which removes your entry from it. To have a group's stored data deleted outright, or to ask any other question about how your data is handled, get in touch below.</p>
 
     <h2 class="fade-up">Contact</h2>
     <p class="fade-up">Got a privacy question before you install? Get in touch at <a href="mailto:privacy@devfusion.net">privacy@devfusion.net</a>.</p>
