@@ -271,16 +271,34 @@
     font-size: 1.05rem;
   }
   .closing .store-note {
-    margin-top: 34px;
+    margin-top: 0;
+    margin-bottom: 26px;
     display: inline-flex;
     gap: 10px;
     align-items: center;
-    padding: 12px 22px;
+    padding: 10px 20px;
     border: 1px solid var(--border);
     border-radius: 999px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
     color: var(--text-dim);
   }
+  .beta-links {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 14px;
+    margin-top: 34px;
+  }
+  .beta-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 26px;
+    border-radius: 999px;
+    font-weight: 600; font-size: 0.95rem;
+    text-decoration: none;
+    transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .beta-cta.primary { background: var(--accent); color: var(--accent-ink); }
+  .beta-cta.primary:hover { opacity: 0.9; }
+  .beta-cta.secondary { border: 1px solid var(--border); color: var(--text); }
+  .beta-cta.secondary:hover { border-color: var(--accent-2); color: var(--accent-2); }
 
   footer {
     border-top: 1px solid var(--border);
@@ -444,8 +462,13 @@
 
 <section class="closing">
   <div class="wrap">
-    <h2>Open the app — it's already there.</h2>
-    <p>If you've already got the Aber Comedy Festival app, the update lands next time you're online. New to the festival? Find it under "Aberystwyth Comedy Festival" in the App Store and Google Play.</p>
+    <span class="store-note">Android only for now — iOS is coming, sorry</span>
+    <h2>It's in beta — go join it.</h2>
+    <p>The redesign isn't in the app stores yet. It's live in open beta on Android, and you can jump in today — opt in on the web, or head straight to the Play Store listing if you're on your phone.</p>
+    <div class="beta-links">
+      <a class="beta-cta primary" href="https://play.google.com/apps/testing/com.devfusion.abercomedy" target="_blank" rel="noopener">Join the beta on the web →</a>
+      <a class="beta-cta secondary" href="https://play.google.com/store/apps/details?id=com.devfusion.abercomedy" target="_blank" rel="noopener">Join on Google Play →</a>
+    </div>
   </div>
 </section>
 
