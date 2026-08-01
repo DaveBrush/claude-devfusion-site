@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Name, Animal, Place, Thing — P2P</title>
+<link rel="icon" type="image/png" href="favicon.png" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js"></script>
+<style>
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('fonts/inter-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('fonts/inter-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+
+  /* ---------- site nav (shared with rest of devfusion.net) ---------- */
+  nav.site-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid #e8e8e6;
+    padding: 0 2rem;
+  }
+  .site-nav .nav-inner {
+    max-width: 1120px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 68px;
+  }
+  .site-nav .nav-logo { text-decoration: none; display: flex; align-items: center; }
+  .site-nav .nav-logo img { height: 36px; width: auto; display: block; }
+  .site-nav .nav-links { display: flex; gap: 2rem; list-style: none; margin: 0; padding: 0; }
+  .site-nav .nav-links a { color: #3a3d47; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.15s; }
+  .site-nav .nav-links a:hover { color: #0f1117; }
+  .site-nav .nav-cta {
+    background: #ff6600; color: #fff;
+    padding: 9px 22px; border-radius: 6px;
+    font-size: 14px; font-weight: 500; text-decoration: none;
+    transition: background 0.15s;
+  }
+  .site-nav .nav-cta:hover { background: #e55a00; }
+  .site-nav .nav-end { display: flex; align-items: center; gap: 2rem; }
+  .site-nav .nav-burger {
+    display: none; flex-direction: column; justify-content: center; gap: 5px;
+    background: none; border: none; cursor: pointer; padding: 6px; margin: -6px;
+  }
+  .site-nav .nav-burger span {
+    display: block; width: 22px; height: 2px;
+    background: #0f1117; border-radius: 2px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    transform-origin: center;
+  }
+  nav.site-nav.menu-open .nav-burger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  nav.site-nav.menu-open .nav-burger span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  nav.site-nav.menu-open .nav-burger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  @media (max-width: 768px) {
+    .site-nav .nav-burger { display: flex; }
+    .site-nav .nav-end {
+      display: none; position: absolute; top: 68px; left: 0; right: 0;
+      flex-direction: column; align-items: stretch; gap: 0;
+      background: rgba(255,255,255,0.97); backdrop-filter: blur(12px);
+      border-bottom: 1px solid #e8e8e6; box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+      padding: 0.75rem 1.5rem 1.25rem; z-index: 99;
+    }
+    nav.site-nav.menu-open .nav-end { display: flex; }
+    .site-nav .nav-links { flex-direction: column; gap: 0; width: 100%; }
+    .site-nav .nav-links li { border-bottom: 1px solid #e8e8e6; }
+    .site-nav .nav-links li:last-child { border-bottom: none; }
+    .site-nav .nav-links a { display: block; padding: 0.875rem 0; font-size: 15px; }
+    .site-nav .nav-cta { display: block; text-align: center; margin-top: 0.75rem; padding: 12px; }
+  }
+
+  /* ---------- game page ---------- */
+  :root{
+    --bg1:#152922; --bg2:#0f1f19; --panel:#1e3a2e; --panelBorder:#2f5443;
+    --chalk:#f4f1e6; --muted:#9db3a8; --gold:#e9c46a; --good:#8fd19e; --bad:#f0a5b0;
+    --input:#132420; --inputBorder:#365547; --bot:#8fb4d1;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin: 0;
+    background:linear-gradient(180deg,var(--bg1),var(--bg2));
+    font-family: 'Inter', system-ui, Arial, sans-serif; color:var(--chalk); padding:0 0 24px;
+  }
+  .wrap{max-width:560px; margin:0 auto; padding:24px 16px 0;}
+  .brand{text-align:center; margin-bottom:22px;}
+  .brand h1{font-family:Georgia,serif; font-weight:800; font-size:28px; color:var(--gold); margin:0; letter-spacing:0.02em;}
+  .brand p{color:var(--muted); font-size:13px; margin:4px 0 0;}
+  .panel{background:var(--panel); border:1px solid var(--panelBorder); border-radius:18px; padding:22px; box-shadow:0 10px 30px rgba(0,0,0,0.35); margin-bottom:14px;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+  label{display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); font-weight:700; margin-bottom:5px;}
+  input[type=text]{
+    width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--inputBorder);
+    background:var(--input); color:var(--chalk); font-size:15px; font-family:inherit;
+  }
+  .field{margin-bottom:14px;}
+  button{
+    width:100%; padding:13px 16px; border-radius:12px; border:none; background:var(--gold);
+    color:#16241d; font-weight:800; font-size:15px; cursor:pointer; margin-top:6px;
+  }
+  button.secondary{background:#2b4438; color:var(--chalk); font-weight:700;}
+  button:disabled{background:#4a5a52; color:#8a9990; cursor:not-allowed;}
+  button + button{margin-top:10px;}
+  .divider{border-top:1px dashed var(--panelBorder); margin:18px 0; padding-top:16px;}
+  .status{font-size:13px; color:var(--muted); text-align:center; margin-top:10px;}
+  .error{color:var(--bad); font-size:13px; font-weight:600; margin-top:10px;}
+  .hint{font-size:12px; color:#748c80; line-height:1.5; margin-top:16px;}
+  .letter-tile{
+    width:90px; height:90px; margin:0 auto 20px; border-radius:16px; background:var(--gold);
+    display:flex; align-items:center; justify-content:center; font-family:Georgia,serif;
+    font-weight:900; font-size:46px; color:#16241d; box-shadow:0 8px 20px rgba(0,0,0,0.4);
+  }
+  .row-between{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .timer{font-size:20px; font-weight:800; font-variant-numeric:tabular-nums;}
+  .timer.low{color:var(--bad);}
+  .badges{display:flex; justify-content:space-around; flex-wrap:wrap; gap:10px; margin-bottom:14px;}
+  .badge{text-align:center; width:70px;}
+  .badge .circle{width:52px; height:52px; border-radius:50%; margin:0 auto 6px; background:var(--gold); color:#16241d; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px;}
+  .badge .circle.empty{background:#2b4438; color:#5c7468;}
+  .badge .circle.bot{background:var(--bot);}
+  .badge .lbl{font-size:10px; color:#748c80; text-transform:uppercase; letter-spacing:0.06em;}
+  .badge .nm{font-size:12px; font-weight:700;}
+  .bot-toggles{background:#182f26; border-radius:12px; padding:14px; margin-bottom:16px;}
+  .bot-toggle-row{display:flex; align-items:center; justify-content:space-between; padding:6px 0;}
+  .bot-toggle-row .txt{font-size:13px; font-weight:700;}
+  .bot-toggle-row .sub{font-size:11px; color:var(--muted); font-weight:400;}
+  .switch{position:relative; width:44px; height:24px; flex:none;}
+  .switch input{opacity:0; width:0; height:0;}
+  .slider{position:absolute; cursor:pointer; inset:0; background:#3a4d43; border-radius:24px; transition:0.2s;}
+  .slider:before{content:""; position:absolute; height:18px; width:18px; left:3px; top:3px; background:white; border-radius:50%; transition:0.2s;}
+  input:checked + .slider{background:var(--gold);}
+  input:checked + .slider:before{transform:translateX(20px);}
+  .result-row{display:flex; justify-content:space-between; font-size:13px; padding:5px 0; border-bottom:1px solid #2b4438;}
+  .result-row .lbl{color:var(--muted); flex:1;}
+  .result-row .val{font-weight:700; flex:1; text-align:center;}
+  .result-row .st{font-weight:700; min-width:70px; text-align:right;}
+  .player-card{margin-top:14px; background:#182f26; border-radius:12px; padding:14px;}
+  .player-card .head{display:flex; justify-content:space-between; margin-bottom:6px;}
+  .player-card .head .pn{font-weight:800;}
+  .player-card .head .pts{font-weight:800; color:var(--gold);}
+  .score-row{display:flex; justify-content:space-around; flex-wrap:wrap; gap:12px; margin-top:18px; margin-bottom:6px;}
+  .score-row .s{text-align:center;}
+  .score-row .s .n{font-size:22px; font-weight:900; color:var(--gold);}
+  .score-row .s .l{font-size:11px; color:var(--muted);}
+  .final-row{display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#182f26; border-radius:10px; margin-bottom:8px;}
+  .final-row.win{background:#2b4c3a;}
+  .final-row .p{font-weight:700;}
+  .final-row .s{font-weight:900; color:var(--gold); font-size:18px;}
+  .code-display{
+    text-align:center; font-family:Georgia,serif; font-size:44px; font-weight:900;
+    color:var(--gold); letter-spacing:0.15em; margin:8px 0 4px;
+  }
+  .spinner{
+    width:22px; height:22px; border:3px solid #365547; border-top-color:var(--gold);
+    border-radius:50%; margin:10px auto; animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  footer{
+    max-width:560px; margin:0 auto; padding:20px 16px 0;
+    text-align:center; font-size:12px; color:var(--muted);
+  }
+  footer a{ color:var(--gold); text-decoration:underline; text-underline-offset:3px; }
+  footer a:hover{ color:var(--chalk); }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="index.html"><img src="df_logo.png" alt="Devfusion" /></a>
+    <div class="nav-end">
+      <ul class="nav-links">
+        <li><a href="index.html#services">Services</a></li>
+        <li><a href="index.html#expertise">Expertise</a></li>
+        <li><a href="index.html#projects">Projects</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="index.html#about">About</a></li>
+      </ul>
+      <a class="nav-cta" href="index.html#contact">Get in touch</a>
+    </div>
+    <button class="nav-burger" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="brand">
+    <h1>Name · Animal · Place · Thing</h1>
+    <p>peer-to-peer, no server — join with a 6-digit code</p>
+  </div>
+
+  <!-- LANDING -->
+  <div id="screen-landing" class="screen active">
+    <div class="panel">
+      <div class="field">
+        <label>Your name</label>
+        <input type="text" id="nameInput" placeholder="e.g. Dave">
+      </div>
+      <div class="divider">
+        <div style="font-weight:800; margin-bottom:8px;">Host a game</div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">Get a 6-digit code to share with the other player.</div>
+        <button id="btnHost">Host game</button>
+      </div>
+      <div class="divider">
+        <div style="font-weight:800; margin-bottom:8px;">Join a game</div>
+        <div class="field">
+          <label>Room code</label>
+          <input type="text" id="joinCodeInput" placeholder="123456" maxlength="6" inputmode="numeric">
+        </div>
+        <button id="btnJoin" class="secondary">Join game</button>
+      </div>
+      <div id="landingError" class="error"></div>
+    </div>
+  </div>
+
+  <!-- HOST WAITING -->
+  <div id="screen-host-setup" class="screen">
+    <div class="panel">
+      <div style="text-align:center; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">Room code</div>
+      <div class="code-display" id="hostCodeDisplay">------</div>
+      <div class="status">Share this code with the other player — they type it in to join. You can also just start with computer players below.</div>
+      <div class="spinner" id="hostSpinner"></div>
+      <div id="hostStatus" class="status"></div>
+      <div id="hostError" class="error"></div>
+    </div>
+  </div>
+
+  <!-- GUEST CONNECTING -->
+  <div id="screen-guest-setup" class="screen">
+    <div class="panel">
+      <div class="spinner"></div>
+      <div id="guestStatus" class="status">Connecting…</div>
+      <div id="guestError" class="error"></div>
+    </div>
+  </div>
+
+  <!-- GAME (lobby / answering / results / finished all render here) -->
+  <div id="screen-game" class="screen">
+    <div class="panel" id="gameContent"></div>
+  </div>
+
+</div>
+
+<footer>
+  <p>Built by <a href="https://devfusion.net">Devfusion</a> · enquiries@devfusion.net · 07866 733164</p>
+</footer>
+
+<script>
+  var burger = document.querySelector('.site-nav .nav-burger');
+  var navEl = document.querySelector('nav.site-nav');
+  burger.addEventListener('click', function() {
+    var open = navEl.classList.toggle('menu-open');
+    burger.setAttribute('aria-expanded', String(open));
+  });
+  document.querySelectorAll('.site-nav .nav-links a').forEach(function(link) {
+    link.addEventListener('click', function() {
+      navEl.classList.remove('menu-open');
+      burger.setAttribute('aria-expanded', 'false');
+    });
+  });
+  document.addEventListener('click', function(e) {
+    if (!navEl.contains(e.target)) {
+      navEl.classList.remove('menu-open');
+      burger.setAttribute('aria-expanded', 'false');
+    }
+  });
+</script>
+
+<script>
+// ---------- CURATED WORD BANK (used by computer players) ----------
+const wordBank = {
+A:{names:["Aaron","Abigail","Adam","Adrian","Aiden","Alan","Alex","Alexis","Alice","Alicia","Amanda","Amber","Amelia","Amy","Andrea","Andrew","Angela","Angelina","Anna","Anthony","Antonio","Ariana","Arthur","Ashley","Aubrey","Audrey","Austin","Ava","Avery","Axel"],
+animals:["Aardvark","Albatross","Alligator","Alpaca","Anaconda","Angelfish","Anteater","Antelope","Ant","Ape","Armadillo","Asp","Auk","Avocet","Axolotl","Addax","Agouti","Amberjack","Angora Rabbit"],
+places:["Amsterdam","Athens","Atlanta","Auckland","Austin","Australia","Austria","Argentina","Algeria","Angola","Alaska","Arizona","Antarctica","Amman","Andorra","Alabama"],
+things:["Apple","Airplane","Anchor","Antenna","Apron","Arrow","Armchair","Axe","Album","Almond","Anvil","Ashtray","Attic","Avocado","Awning"]},
+B:{names:["Barbara","Barry","Beatrice","Ben","Benjamin","Bernard","Bethany","Betty","Bianca","Bill","Blake","Bob","Brad","Brandon","Brenda","Brian","Brianna","Bridget","Brittany","Bruce","Bruno","Bryan","Bradley"],
+animals:["Baboon","Badger","Barracuda","Bat","Bear","Beaver","Bee","Beetle","Bison","Boar","Bobcat","Buffalo","Bull","Butterfly","Buzzard","Bullfrog"],
+places:["Bangkok","Barcelona","Beijing","Belfast","Belgium","Berlin","Bermuda","Boston","Brazil","Brisbane","Bristol","Brussels","Budapest","Bulgaria","Birmingham"],
+things:["Backpack","Ball","Balloon","Banana","Bandage","Banjo","Barrel","Basket","Bat","Bathtub","Battery","Bed","Bell","Belt","Bench","Bicycle","Blanket","Boat","Book","Boot","Bottle","Bowl","Box","Bracelet","Bridge","Broom","Brush","Bucket","Button"]},
+C:{names:["Caleb","Callum","Cameron","Carl","Carla","Carlos","Carmen","Carol","Caroline","Carrie","Catherine","Charles","Charlotte","Chloe","Chris","Christian","Christina","Christopher","Cindy","Claire","Clara","Claude","Clive","Colin","Connor","Craig","Curtis"],
+animals:["Camel","Canary","Capybara","Caribou","Cat","Caterpillar","Centipede","Cheetah","Chicken","Chimpanzee","Chinchilla","Chipmunk","Cobra","Cockatoo","Cod","Condor","Cougar","Cow","Coyote","Crab","Crane","Cricket","Crocodile","Crow"],
+places:["Cairo","Calgary","California","Cambodia","Cambridge","Cameroon","Canada","Cancun","Canberra","Cape Town","Cardiff","Chicago","Chile","China","Colombia","Copenhagen","Croatia","Cuba","Cyprus"],
+things:["Cabinet","Cage","Calculator","Calendar","Camera","Candle","Cane","Canoe","Cap","Car","Card","Carpet","Cart","Case","Castle","Cauldron","Chain","Chair","Chalk","Chandelier","Charm","Chest","Chimney","Clock","Cloth","Coat","Coin","Comb","Compass","Cup"]},
+D:{names:["Daisy","Dan","Daniel","Danielle","Danny","Darren","Dave","David","Dean","Debbie","Deborah","Declan","Denise","Dennis","Derek","Diana","Diane","Dominic","Donald","Donna","Doris","Dorothy","Doug","Douglas","Duncan","Dylan"],
+animals:["Dachshund","Dalmatian","Deer","Dingo","Dinosaur","Dodo","Dog","Dolphin","Donkey","Dove","Dragonfly","Duck","Dugong","Duiker"],
+places:["Dallas","Damascus","Delhi","Denmark","Denver","Detroit","Dhaka","Dominica","Dover","Dublin","Dubai","Durban"],
+things:["Desk","Diamond","Dice","Dictionary","Dish","Doll","Dollar","Door","Doorbell","Doormat","Drawer","Dress","Drill","Drum","Dumbbell","Duvet"]},
+E:{names:["Earl","Ed","Eddie","Eden","Edgar","Edith","Edmund","Edward","Edwin","Eileen","Elaine","Eleanor","Elena","Eli","Elias","Elijah","Elizabeth","Ella","Ellen","Elliot","Emily","Emma","Eric","Erica","Erin","Ethan","Eugene","Eva","Evan","Evelyn"],
+animals:["Eagle","Earthworm","Earwig","Echidna","Eel","Egret","Elephant","Elk","Emu","Ermine"],
+places:["Edinburgh","Egypt","Ecuador","Eritrea","Estonia","Ethiopia","Europe","Everest","Essex","Exeter"],
+things:["Earring","Easel","Egg","Elevator","Envelope","Eraser","Escalator","Engine"]},
+F:{names:["Faith","Felicity","Felix","Fiona","Fletcher","Florence","Floyd","Frances","Francesca","Francis","Frank","Frankie","Franklin","Fred","Freddie","Frederick","Freya"],
+animals:["Falcon","Ferret","Finch","Fish","Flamingo","Flea","Fly","Fox","Frog"],
+places:["Fiji","Finland","Florence","Florida","France","Frankfurt"],
+things:["Fan","Feather","Fence","Fern","Fiddle","File","Film","Finger Puppet","Fireplace","Fish Tank","Flag","Flashlight","Flask","Flower","Flute","Football","Fork","Fountain","Frame","Fridge","Frisbee","Fruit","Funnel"]},
+G:{names:["Gabriel","Gail","Gareth","Garry","Gary","Gavin","Gemma","Geoffrey","George","Georgia","Gerald","Gerard","Gillian","Gina","Glen","Glenn","Gloria","Gordon","Grace","Graham","Grant","Greg","Gregory","Guy","Gwen"],
+animals:["Gazelle","Gecko","Gerbil","Gibbon","Giraffe","Goat","Goldfish","Goose","Gopher","Gorilla","Grasshopper","Grizzly Bear","Guinea Pig","Gull"],
+places:["Geneva","Georgia","Germany","Ghana","Glasgow","Greece","Greenland","Grenada","Guatemala","Guyana"],
+things:["Garden Hose","Garlic","Gate","Gem","Glass","Glasses","Globe","Glove","Goblet","Goggles","Gold Ring","Golf Club","Gong","Gown","Grill","Guitar"]},
+H:{names:["Hailey","Hannah","Harold","Harriet","Harry","Harvey","Hazel","Heather","Hector","Helen","Henry","Herbert","Holly","Howard","Hugh","Hugo","Hunter"],
+animals:["Hamster","Hare","Hawk","Hedgehog","Heron","Herring","Hippopotamus","Hornet","Horse","Hound","Hummingbird","Husky","Hyena"],
+places:["The Hague","Haiti","Hamburg","Hanoi","Harare","Hawaii","Helsinki","Honduras","Hong Kong","Houston","Hungary"],
+things:["Hammer","Hammock","Hanger","Harmonica","Harp","Hat","Headphones","Heater","Helmet","Hinge","Hive","Hoe","Hook","Horn","Hose","Hourglass","House","Hut"]},
+I:{names:["Ian","Ida","Ignatius","Imogen","Ines","Ingrid","Ira","Irene","Iris","Irving","Isaac","Isabel","Isabella","Isla","Ivan","Ivy"],
+animals:["Ibex","Ibis","Iguana","Impala","Inchworm","Indri","Insect"],
+places:["Iceland","Idaho","India","Indiana","Indonesia","Iowa","Iran","Iraq","Ireland","Israel","Istanbul","Italy"],
+things:["Ice Cream","Iceberg","Icicle","Igloo","Ink","Iron","iPod"]},
+J:{names:["Jack","Jacob","Jade","Jake","James","Jamie","Jane","Janet","Janice","Jasmine","Jason","Jasper","Jay","Jayden","Jean","Jeff","Jeffrey","Jenna","Jennifer","Jenny","Jeremy","Jerry","Jess","Jessica","Jill","Jim","Jimmy","Joan","Joanna","Joe","Joel","John","Jonathan","Jordan","Joseph","Josh","Joshua","Joy","Joyce","Juan","Judy","Julia","Julian","Julie","June","Justin"],
+animals:["Jackal","Jaguar","Jay","Jellyfish","Jerboa"],
+places:["Jakarta","Jamaica","Japan","Jerusalem","Johannesburg","Jordan"],
+things:["Jacket","Jar","Javelin","Jeans","Jeep","Jelly","Jewel","Jigsaw","Jug","Juice","Jukebox"]},
+K:{names:["Kai","Kaitlyn","Karen","Karl","Kate","Katherine","Kathleen","Kathy","Katie","Kayla","Keith","Kelly","Kenneth","Kevin","Kim","Kimberly","Kirsty","Kristen","Kurt","Kyle"],
+animals:["Kangaroo","Katydid","Kingfisher","Kiwi","Koala","Koi","Komodo Dragon","Kookaburra","Krill"],
+places:["Kabul","Kansas","Kathmandu","Kazakhstan","Kentucky","Kenya","Kiev","Kingston","Kuwait","Kyoto"],
+things:["Kayak","Kettle","Key","Keyboard","Kilt","Kimono","Kite","Knife","Knapsack","Knot"]},
+L:{names:["Laura","Lauren","Lawrence","Layla","Leah","Lee","Leo","Leon","Leonard","Leslie","Lewis","Liam","Lily","Linda","Lisa","Logan","Lois","Lola","Lorraine","Louis","Louise","Lucas","Lucy","Luke","Luna","Lydia","Lynn"],
+animals:["Ladybug","Lamb","Lark","Lemming","Lemur","Leopard","Lion","Lizard","Llama","Lobster","Locust","Loris","Lynx"],
+places:["Lagos","Lahore","Laos","Las Vegas","Latvia","Lebanon","Leeds","Leicester","Lesotho","Liberia","Libya","Lima","Lisbon","Liverpool","London","Los Angeles","Luxembourg"],
+things:["Ladder","Lamp","Lantern","Laptop","Lawnmower","Leash","Lemon","Letter","Library","Lighthouse","Lipstick","Lock","Log","Loom","Lorry"]},
+M:{names:["Madeline","Maggie","Malcolm","Marc","Marcus","Margaret","Maria","Marie","Marion","Mark","Martin","Martha","Mary","Mason","Matt","Matthew","Maureen","Max","Maxine","May","Megan","Melanie","Melissa","Michael","Michelle","Mike","Miles","Molly","Monica","Morgan","Moses","Muhammad","Myra"],
+animals:["Macaque","Magpie","Mallard","Mammoth","Manatee","Mandrill","Mantis","Marmot","Meerkat","Mink","Mole","Mongoose","Monkey","Moose","Mosquito","Moth","Mouse","Mule","Mussel"],
+places:["Madagascar","Madrid","Malaysia","Maldives","Mali","Malta","Manchester","Manila","Marseille","Melbourne","Mexico","Miami","Milan","Minnesota","Monaco","Mongolia","Montreal","Morocco","Moscow","Mozambique","Mumbai","Munich"],
+things:["Magnet","Magazine","Mailbox","Map","Marble","Mask","Mattress","Medal","Menu","Microphone","Microscope","Mirror","Mitten","Mobile Phone","Money","Monitor","Mop","Motorbike","Mug","Mushroom"]},
+N:{names:["Nadia","Nancy","Naomi","Natalie","Nathan","Neil","Nell","Nellie","Nelson","Nia","Nicholas","Nick","Nicola","Nicole","Nigel","Nina","Noah","Noel","Nora","Norman","Nova"],
+animals:["Narwhal","Newt","Nightingale","Nighthawk","Numbat","Nutria"],
+places:["Nairobi","Namibia","Naples","Nepal","Netherlands","Nevada","New York","New Zealand","Newcastle","Nicaragua","Niger","Nigeria","Norfolk","Norway","Nottingham"],
+things:["Nail","Napkin","Necklace","Needle","Net","Newspaper","Notebook","Notepad","Nozzle"]},
+O:{names:["Oliver","Olivia","Omar","Oscar","Otis","Owen"],
+animals:["Ocelot","Octopus","Okapi","Opossum","Orangutan","Orca","Ostrich","Otter","Owl","Ox","Oyster"],
+places:["Oakland","Ohio","Oklahoma","Oman","Ontario","Orlando","Oslo","Ottawa","Oxford"],
+things:["Oar","Oboe","Ointment","Onion","Opal","Orange","Organ","Ornament","Oven","Overalls","Oxygen Tank"]},
+P:{names:["Pamela","Patricia","Patrick","Paul","Paula","Pauline","Penny","Percy","Perry","Peter","Philip","Phoebe","Phyllis","Pierre","Piper","Priscilla"],
+animals:["Panda","Panther","Parrot","Partridge","Peacock","Pelican","Penguin","Pheasant","Pig","Pigeon","Piranha","Platypus","Poodle","Porcupine","Porpoise","Possum","Prawn","Puffin","Puma","Python"],
+places:["Pakistan","Panama","Paraguay","Paris","Peru","Philadelphia","Philippines","Phnom Penh","Phoenix","Poland","Portugal","Prague","Pretoria"],
+things:["Paddle","Padlock","Paint","Pajamas","Pan","Pancake","Paper","Parachute","Parcel","Passport","Pen","Pencil","Perfume","Phone","Piano","Pillow","Pin","Pipe","Pizza","Plate","Pocket","Poster","Pot","Printer","Puzzle"]},
+Q:{names:["Quentin","Quincy","Quinn"],
+animals:["Quail","Quetzal","Quokka","Quoll"],
+places:["Qatar","Quebec","Queensland","Quito"],
+things:["Quill","Quilt"]},
+R:{names:["Rachel","Ralph","Randy","Raymond","Rebecca","Regina","Renee","Rhonda","Ricardo","Richard","Ricky","Riley","Rita","Robert","Roberta","Robin","Rodney","Roger","Ronald","Rosa","Rose","Ross","Roy","Ruby","Rupert","Russell","Ruth","Ryan"],
+animals:["Rabbit","Raccoon","Ram","Rat","Rattlesnake","Raven","Ray","Reindeer","Rhinoceros","Robin","Rooster","Rottweiler"],
+places:["Rabat","Reykjavik","Rhode Island","Riga","Rio de Janeiro","Riyadh","Rome","Romania","Russia","Rwanda"],
+things:["Rabbit Hutch","Racket","Radio","Raft","Rail","Rake","Razor","Recorder","Ribbon","Ring","Robe","Rocket","Rope","Rug","Ruler"]},
+S:{names:["Sally","Sam","Samantha","Samuel","Sandra","Sara","Sarah","Scott","Sean","Sebastian","Shane","Shannon","Sharon","Sheila","Shirley","Sidney","Simon","Sophia","Sophie","Spencer","Stacy","Stan","Stanley","Stephanie","Stephen","Steve","Steven","Stuart","Sue","Susan","Suzanne","Sydney"],
+animals:["Salamander","Salmon","Sardine","Scorpion","Seagull","Seahorse","Seal","Shark","Sheep","Shrew","Shrimp","Skunk","Sloth","Snail","Snake","Sparrow","Spider","Squid","Squirrel","Starfish","Stingray","Stork","Swallow","Swan"],
+places:["Sacramento","San Francisco","Santiago","Saudi Arabia","Scotland","Seattle","Senegal","Seoul","Serbia","Seville","Seychelles","Shanghai","Sheffield","Singapore","Slovakia","Slovenia","Somalia","South Africa","South Korea","Spain","Sri Lanka","Stockholm","Sudan","Sweden","Switzerland","Sydney"],
+things:["Saddle","Safe","Sail","Sandal","Sandwich","Saucepan","Saw","Scale","Scarf","Scissors","Screen","Screw","Scroll","Sculpture","Shampoo","Shed","Sheet","Shelf","Shield","Ship","Shirt","Shoe","Shovel","Shower","Sink","Skateboard","Skirt","Sled","Sock","Sofa","Spoon","Spring","Stamp","Stapler","Statue","Stool","Stove","Suitcase","Sunglasses","Sword","Syringe"]},
+T:{names:["Tabitha","Tamara","Tanya","Tara","Ted","Teresa","Terrence","Terry","Thelma","Theodore","Theresa","Thomas","Tiffany","Tim","Timothy","Tina","Todd","Tom","Tommy","Toni","Tony","Tracy","Travis","Trevor","Troy","Tyler","Tyrone"],
+animals:["Tapir","Tarantula","Tasmanian Devil","Termite","Tern","Terrier","Tiger","Toad","Toucan","Trout","Turkey","Turtle"],
+places:["Taipei","Taiwan","Tajikistan","Tanzania","Tehran","Tel Aviv","Tennessee","Texas","Thailand","Tibet","Tokyo","Toronto","Tunisia","Turkey","Tuscany"],
+things:["Table","Tablecloth","Tablet","Tambourine","Tape","Tapestry","Teapot","Telephone","Telescope","Television","Tent","Thermometer","Thermos","Thimble","Thread","Ticket","Tie","Timer","Toaster","Toolbox","Toothbrush","Torch","Towel","Tower","Toy","Tractor","Train","Trampoline","Tray","Treasure Chest","Tricycle","Tripod","Trolley","Trombone","Trophy","Truck","Trumpet","Trunk","Tube","Tuxedo","Typewriter"]},
+U:{names:["Ulysses","Uma","Uriah","Ursula"],
+animals:["Uakari","Umbrellabird","Urchin","Urial"],
+places:["Uganda","Ukraine","Uruguay","Utah","Utrecht"],
+things:["Ukulele","Umbrella","Uniform","Urn","Utensil"]},
+V:{names:["Valentina","Valerie","Van","Vanessa","Vera","Vernon","Veronica","Vicki","Victor","Victoria","Vince","Vincent","Violet","Virginia","Vivian"],
+animals:["Vampire Bat","Vervet Monkey","Viper","Vole","Vulture"],
+places:["Vancouver","Vanuatu","Vatican City","Venezuela","Venice","Vermont","Vienna","Vietnam","Virginia"],
+things:["Vacuum","Vase","Vault","Veil","Velvet","Vest","Video Game","Violin","Volleyball"]},
+W:{names:["Wade","Walter","Wanda","Warren","Wayne","Wendy","Wesley","Whitney","Wilbur","Wilfred","Wilhelmina","Will","William","Wilma","Winnie","Winston","Wyatt"],
+animals:["Wallaby","Walrus","Warthog","Wasp","Weasel","Whale","Wildebeest","Wolf","Wolverine","Wombat","Woodpecker","Worm","Wren"],
+places:["Wales","Warsaw","Washington","Wellington","West Virginia","Wisconsin","Wyoming"],
+things:["Wagon","Wallet","Wand","Wardrobe","Washer","Watch","Water Bottle","Wheel","Wheelbarrow","Whisk","Whistle","Wig","Windmill","Window","Wine Glass","Wok","Wreath","Wrench"]},
+X:{names:["Xander","Xavier","Xena","Ximena"],
+animals:["Xerus","X-ray Tetra"],
+places:["Xi'an","Xiamen"],
+things:["Xylophone"]},
+Y:{names:["Yasmin","Yolanda","Yosef","Yusuf","Yvette","Yvonne"],
+animals:["Yak","Yellowjacket","Yorkshire Terrier"],
+places:["Yemen","Yokohama","Yorkshire","Yosemite","Yukon"],
+things:["Yacht","Yarn","Yo-yo","Yoga Mat"]},
+Z:{names:["Zachary","Zack","Zane","Zara","Zelda","Zoe"],
+animals:["Zebra","Zebu","Zorilla"],
+places:["Zagreb","Zambia","Zanzibar","Zimbabwe","Zurich"],
+things:["Zeppelin","Zipper","Zither"]}
+};
+
+const LETTERS = Object.keys(wordBank);
+const ROUND_TIME = 30;
+const TOTAL_ROUNDS = 5;
+const CATEGORIES = [
+  {key:"names", label:"Name"},
+  {key:"animals", label:"Animal"},
+  {key:"places", label:"Place"},
+  {key:"things", label:"Thing"}
+];
+const PEER_PREFIX = "napt-game-";
+const BOT_NAMES = { bot1: "Marvin", bot2: "Deep Thought" };
+
+function botAnswer(letter, catKey){
+  const bank = wordBank[letter] && wordBank[letter][catKey];
+  if(!bank || !bank.length) return "";
+  return bank[Math.floor(Math.random()*bank.length)];
+}
+
+let peer = null, conn = null, role = null; // role: 'host' | 'guest'
+let myName = "", opponentName = "";
+let botsEnabled = { bot1:false, bot2:false }; // host-controlled
+let game = {
+  phase: "lobby", round: 0, letter: null,
+  players: [], // [{id,name,isBot}]
+  scores: {}, roundHistory: []
+};
+let myAnswers = { names:"", animals:"", places:"", things:"" };
+let mySubmitted = false;
+let guestPendingSubmit = null;
+let opponentSubmittedThisRound = false;
+let countdownInterval = null;
+let roundStartLocal = null;
+
+function $(id){ return document.getElementById(id); }
+function show(screenId){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $(screenId).classList.add("active");
+}
+function makeSixDigitCode(){
+  return String(Math.floor(100000 + Math.random()*900000));
+}
+
+function buildPlayerList(){
+  const list = [{id:"host", name: role==="host"?myName:opponentName, isBot:false}];
+  if(opponentName || role==="guest"){
+    list.push({id:"guest", name: role==="guest"?myName:opponentName, isBot:false});
+  }
+  if(botsEnabled.bot1) list.push({id:"bot1", name: BOT_NAMES.bot1, isBot:true});
+  if(botsEnabled.bot2) list.push({id:"bot2", name: BOT_NAMES.bot2, isBot:true});
+  return list;
+}
+
+// ---------------- Landing ----------------
+$("btnHost").addEventListener("click", ()=>{
+  myName = $("nameInput").value.trim();
+  $("landingError").textContent = "";
+  if(!myName){ $("landingError").textContent = "Enter your name first."; return; }
+  role = "host";
+  show("screen-host-setup");
+  startHost();
+});
+
+$("btnJoin").addEventListener("click", ()=>{
+  myName = $("nameInput").value.trim();
+  const code = $("joinCodeInput").value.trim();
+  $("landingError").textContent = "";
+  if(!myName){ $("landingError").textContent = "Enter your name first."; return; }
+  if(!/^\d{6}$/.test(code)){ $("landingError").textContent = "Enter the 6-digit room code."; return; }
+  role = "guest";
+  show("screen-guest-setup");
+  startGuest(code);
+});
+
+// ---------------- Host ----------------
+function startHost(attempt){
+  attempt = attempt || 0;
+  const code = makeSixDigitCode();
+  peer = new Peer(PEER_PREFIX + code);
+
+  peer.on("open", ()=>{
+    $("hostCodeDisplay").textContent = code;
+    $("hostSpinner").style.display = "block";
+    $("hostStatus").textContent = "Waiting for the other player to join…";
+  });
+
+  peer.on("connection", (c)=>{
+    conn = c;
+    wireConn(conn);
+  });
+
+  peer.on("error", (err)=>{
+    if(err.type === "unavailable-id" && attempt < 5){
+      peer.destroy();
+      startHost(attempt+1);
+    } else {
+      $("hostError").textContent = "Couldn't set up the room (" + err.type + "). Check your internet connection and try again.";
+      $("hostSpinner").style.display = "none";
+    }
+  });
+}
+
+// ---------------- Guest ----------------
+function startGuest(code){
+  peer = new Peer();
+
+  peer.on("open", ()=>{
+    conn = peer.connect(PEER_PREFIX + code, { reliable: true });
+    wireConn(conn);
+
+    setTimeout(()=>{
+      if(!conn.open){
+        $("guestStatus").textContent = "Still trying…";
+      }
+    }, 6000);
+  });
+
+  peer.on("error", (err)=>{
+    $("guestError").textContent = "Couldn't connect (" + err.type + "). Double-check the code and that the host's game is still open.";
+  });
+}
+
+// ---------------- shared connection wiring ----------------
+function wireConn(c){
+  c.on("open", ()=>{
+    show("screen-game");
+    if(role === "guest"){
+      send({type:"join", name: myName});
+    } else {
+      game.players = buildPlayerList();
+    }
+    renderGame();
+  });
+  c.on("close", ()=>{
+    game.phase = "lobby";
+    renderGame();
+  });
+  c.on("data", (msg)=>{
+    handleMessage(msg);
+  });
+  c.on("error", ()=>{
+    if(role === "guest") $("guestError").textContent = "Connection lost.";
+  });
+}
+
+function send(obj){
+  if(conn && conn.open) conn.send(obj);
+}
+
+// ---------------- message handling ----------------
+function handleMessage(msg){
+  if(role === "host"){
+    if(msg.type === "join"){
+      opponentName = msg.name;
+      game.players = buildPlayerList();
+      send({type:"welcome", hostName: myName, players: game.players});
+      renderGame();
+    } else if(msg.type === "submit" && msg.round === game.round){
+      guestPendingSubmit = msg.answers;
+      opponentSubmittedThisRound = true;
+      maybeComputeResults();
+      renderGame();
+    }
+  } else { // guest
+    if(msg.type === "welcome"){
+      opponentName = msg.hostName;
+      game.players = msg.players;
+      renderGame();
+    } else if(msg.type === "players_update"){
+      game.players = msg.players;
+      renderGame();
+    } else if(msg.type === "round_start"){
+      game.round = msg.round;
+      game.letter = msg.letter;
+      game.players = msg.players;
+      game.phase = "answering";
+      myAnswers = {names:"",animals:"",places:"",things:""};
+      mySubmitted = false;
+      startLocalCountdown();
+      renderGame();
+    } else if(msg.type === "round_result"){
+      game.roundHistory.push({round: msg.round, letter: msg.letter, results: msg.results});
+      game.scores = msg.scores;
+      game.phase = "results";
+      stopLocalCountdown();
+      renderGame();
+    } else if(msg.type === "game_over"){
+      game.scores = msg.scores;
+      game.phase = "finished";
+      renderGame();
+    } else if(msg.type === "game_reset"){
+      game = {phase:"lobby", round:0, letter:null, players: msg.players, scores:{}, roundHistory:[]};
+      mySubmitted = false;
+      renderGame();
+    }
+  }
+}
+
+// ---------------- host: bot toggles ----------------
+function toggleBot(botId){
+  botsEnabled[botId] = !botsEnabled[botId];
+  game.players = buildPlayerList();
+  send({type:"players_update", players: game.players});
+  renderGame();
+}
+
+// ---------------- host game flow ----------------
+function initScores(players){
+  const s = {};
+  players.forEach(p=> s[p.id] = 0);
+  return s;
+}
+
+function hostStartGame(){
+  game.players = buildPlayerList();
+  game.scores = initScores(game.players);
+  game.round = 1;
+  game.letter = LETTERS[Math.floor(Math.random()*LETTERS.length)];
+  game.phase = "answering";
+  myAnswers = {names:"",animals:"",places:"",things:""};
+  mySubmitted = false;
+  guestPendingSubmit = null;
+  opponentSubmittedThisRound = false;
+  send({type:"round_start", round: game.round, letter: game.letter, players: game.players});
+  startLocalCountdown();
+  renderGame();
+}
+
+function hostNextRound(){
+  game.round += 1;
+  game.letter = LETTERS[Math.floor(Math.random()*LETTERS.length)];
+  game.phase = "answering";
+  myAnswers = {names:"",animals:"",places:"",things:""};
+  mySubmitted = false;
+  guestPendingSubmit = null;
+  opponentSubmittedThisRound = false;
+  send({type:"round_start", round: game.round, letter: game.letter, players: game.players});
+  startLocalCountdown();
+  renderGame();
+}
+
+function hostPlayAgain(){
+  game.players = buildPlayerList();
+  game = {phase:"lobby", round:0, letter:null, players: game.players, scores: initScores(game.players), roundHistory:[]};
+  mySubmitted = false;
+  send({type:"game_reset", players: game.players});
+  renderGame();
+}
+
+function startLocalCountdown(){
+  stopLocalCountdown();
+  roundStartLocal = Date.now();
+  countdownInterval = setInterval(()=>{
+    const left = Math.max(0, ROUND_TIME - Math.floor((Date.now()-roundStartLocal)/1000));
+    updateTimerDisplay(left);
+    if(left <= 0){
+      stopLocalCountdown();
+      if(role === "host"){
+        if(!mySubmitted) submitAnswers(true);
+        maybeComputeResults(true);
+      }
+    }
+  }, 300);
+}
+function stopLocalCountdown(){
+  if(countdownInterval){ clearInterval(countdownInterval); countdownInterval = null; }
+}
+function updateTimerDisplay(left){
+  const el = $("timerDisplay");
+  if(el){
+    el.textContent = "⏱ " + left + "s";
+    el.classList.toggle("low", left <= 10);
+  }
+}
+
+function submitAnswers(forced){
+  if(mySubmitted) return;
+  mySubmitted = true;
+  if(role === "guest"){
+    send({type:"submit", round: game.round, answers: myAnswers});
+  } else {
+    maybeComputeResults();
+  }
+}
+
+function hasGuest(){
+  return game.players.some(p=>p.id==="guest");
+}
+
+function maybeComputeResults(forced){
+  if(role !== "host" || game.phase !== "answering") return;
+  const timeUp = roundStartLocal && (Date.now()-roundStartLocal)/1000 >= ROUND_TIME;
+  const bothIn = mySubmitted && (!hasGuest() || opponentSubmittedThisRound);
+  if(!forced && !timeUp && !bothIn) return;
+
+  const answersById = {
+    host: myAnswers,
+    guest: guestPendingSubmit || {names:"",animals:"",places:"",things:""}
+  };
+  CATEGORIES.forEach(cat=>{
+    ["bot1","bot2"].forEach(botId=>{
+      if(!answersById[botId]) answersById[botId] = {names:"",animals:"",places:"",things:""};
+      if(game.players.some(p=>p.id===botId) && !answersById[botId][cat.key]){
+        answersById[botId][cat.key] = botAnswer(game.letter, cat.key);
+      }
+    });
+  });
+
+  const results = {};
+  game.players.forEach(p=>{ results[p.id] = { name: p.name, categories:{}, points:0 }; });
+
+  CATEGORIES.forEach(cat=>{
+    const norm = {};
+    game.players.forEach(p=>{
+      const val = (answersById[p.id]?.[cat.key] || "").trim();
+      const valid = val.length>0 && val[0].toUpperCase() === game.letter;
+      results[p.id].categories[cat.key] = {value: val, valid, unique:false, point:0};
+      if(valid){ const k = val.toLowerCase(); norm[k] = (norm[k]||0)+1; }
+    });
+    game.players.forEach(p=>{
+      const c = results[p.id].categories[cat.key];
+      if(c.valid){
+        const isUnique = norm[c.value.toLowerCase()] === 1;
+        c.unique = isUnique; c.point = isUnique ? 1 : 0;
+        results[p.id].points += c.point;
+      }
+    });
+  });
+
+  game.players.forEach(p=>{
+    game.scores[p.id] = (game.scores[p.id]||0) + results[p.id].points;
+  });
+  game.roundHistory.push({round: game.round, letter: game.letter, results});
+
+  if(game.round >= TOTAL_ROUNDS){
+    game.phase = "finished";
+    send({type:"game_over", scores: game.scores});
+  } else {
+    game.phase = "results";
+    send({type:"round_result", round: game.round, letter: game.letter, results, scores: game.scores});
+  }
+  stopLocalCountdown();
+  renderGame();
+}
+
+// ---------------- rendering ----------------
+function renderGame(){
+  const c = $("gameContent");
+
+  if(game.phase === "lobby"){
+    const players = game.players.length ? game.players : buildPlayerList();
+    c.innerHTML = `
+      <div class="badges">
+        ${players.map(p=>`
+          <div class="badge">
+            <div class="circle ${p.isBot?"bot":""}">${p.name ? p.name.charAt(0).toUpperCase() : "?"}</div>
+            <div class="lbl">${p.id==="host"?"Host":p.id==="guest"?"Player 2":"Computer"}</div>
+            <div class="nm">${p.name}</div>
+          </div>
+        `).join("")}
+        ${!hasGuestIn(players) ? `<div class="badge"><div class="circle empty">?</div><div class="lbl">Player 2</div><div class="nm">waiting…</div></div>` : ""}
+      </div>
+      ${role === "host" ? `
+        <div class="bot-toggles">
+          <div class="bot-toggle-row">
+            <div class="txt">Add computer player<div class="sub">plays as "${BOT_NAMES.bot1}", picks from a curated word list</div></div>
+            <label class="switch"><input type="checkbox" id="botToggle1" ${botsEnabled.bot1?"checked":""}><span class="slider"></span></label>
+          </div>
+          <div class="bot-toggle-row">
+            <div class="txt">Add second computer player<div class="sub">plays as "${BOT_NAMES.bot2}"</div></div>
+            <label class="switch"><input type="checkbox" id="botToggle2" ${botsEnabled.bot2?"checked":""}><span class="slider"></span></label>
+          </div>
+        </div>
+        <button id="btnStartGame">Start game — 5 rounds, 30s each</button>
+      ` : `<div class="status">Waiting for the host to start the game…</div>`}
+    `;
+    if(role === "host"){
+      $("botToggle1").addEventListener("change", ()=> toggleBot("bot1"));
+      $("botToggle2").addEventListener("change", ()=> toggleBot("bot2"));
+      $("btnStartGame").addEventListener("click", hostStartGame);
+    }
+  }
+
+  else if(game.phase === "answering"){
+    const left = Math.max(0, ROUND_TIME - Math.floor((Date.now()-(roundStartLocal||Date.now()))/1000));
+    if(mySubmitted){
+      c.innerHTML = `
+        <div class="row-between"><div style="font-size:12px;color:var(--muted);font-weight:700;">Round ${game.round} of ${TOTAL_ROUNDS}</div><div class="timer" id="timerDisplay">⏱ ${left}s</div></div>
+        <div class="letter-tile">${game.letter}</div>
+        <div style="text-align:center;padding:20px 0;">
+          <div style="font-size:15px;font-weight:700;margin-bottom:6px;">Answers locked in ✅</div>
+          <div style="font-size:13px;color:var(--muted);">${waitingText()}</div>
+        </div>
+      `;
+    } else {
+      c.innerHTML = `
+        <div class="row-between"><div style="font-size:12px;color:var(--muted);font-weight:700;">Round ${game.round} of ${TOTAL_ROUNDS}</div><div class="timer" id="timerDisplay">⏱ ${left}s</div></div>
+        <div class="letter-tile">${game.letter}</div>
+        ${CATEGORIES.map(cat=>`
+          <div class="field">
+            <label>${cat.label}</label>
+            <input type="text" id="in-${cat.key}" placeholder="Starts with ${game.letter}…" value="${myAnswers[cat.key]}">
+          </div>
+        `).join("")}
+        <button id="btnSubmit">Submit answers</button>
+      `;
+      CATEGORIES.forEach(cat=>{
+        $("in-"+cat.key).addEventListener("input", (e)=> myAnswers[cat.key] = e.target.value);
+      });
+      $("btnSubmit").addEventListener("click", ()=> submitAnswers(false));
+    }
+  }
+
+  else if(game.phase === "results"){
+    const last = game.roundHistory[game.roundHistory.length-1];
+    c.innerHTML = `
+      <div style="text-align:center;margin-bottom:4px;">
+        <div style="font-size:12px;color:var(--muted);font-weight:700;">Round ${last.round} of ${TOTAL_ROUNDS} results — letter</div>
+        <div style="font-family:Georgia,serif;font-size:30px;font-weight:900;color:var(--gold);">${last.letter}</div>
+      </div>
+      ${game.players.map(p=>{
+        const r = last.results[p.id];
+        const isMe = role === p.id;
+        return `
+          <div class="player-card">
+            <div class="head"><span class="pn">${r.name}${isMe?" (you)":""}${p.isBot?" 🤖":""}</span><span class="pts">+${r.points} this round</span></div>
+            ${CATEGORIES.map(cat=>{
+              const c2 = r.categories[cat.key];
+              const color = !c2.valid ? "var(--muted)" : c2.unique ? "var(--good)" : "var(--bad)";
+              const st = !c2.valid ? "invalid" : c2.unique ? "+1 unique" : "duplicate";
+              return `<div class="result-row"><span class="lbl">${cat.label}</span><span class="val">${c2.value || "—"}</span><span class="st" style="color:${color}">${st}</span></div>`;
+            }).join("")}
+          </div>
+        `;
+      }).join("")}
+      <div class="score-row">
+        ${game.players.map(p=>`
+          <div class="s"><div class="n">${game.scores[p.id]}</div><div class="l">${p.name}${p.isBot?" 🤖":""} total</div></div>
+        `).join("")}
+      </div>
+      ${role === "host" ? `<button id="btnNextRound">Next round →</button>` : `<div class="status" style="margin-top:8px;">Waiting for the host to continue…</div>`}
+    `;
+    if(role === "host"){
+      $("btnNextRound").addEventListener("click", hostNextRound);
+    }
+  }
+
+  else if(game.phase === "finished"){
+    const ranked = [...game.players].sort((a,b)=> game.scores[b.id]-game.scores[a.id]);
+    const tie = ranked.length>1 && game.scores[ranked[0].id] === game.scores[ranked[1].id];
+    const winner = ranked[0];
+    c.innerHTML = `
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Game over</div>
+        <div style="font-family:Georgia,serif;font-size:26px;font-weight:900;color:var(--gold);margin-top:4px;">${tie ? "It's a tie!" : winner.name + " wins! " + (winner.isBot ? "🤖" : "🏆")}</div>
+      </div>
+      ${ranked.map((p,i)=>`
+        <div class="final-row ${i===0 && !tie ? "win":""}">
+          <span class="p">${i+1}. ${p.name}${p.isBot?" 🤖":""}${role===p.id?" (you)":""}</span>
+          <span class="s">${game.scores[p.id]}</span>
+        </div>
+      `).join("")}
+      ${role === "host" ? `<button id="btnPlayAgain">Play again</button>` : `<div class="status" style="margin-top:8px;">Waiting for the host to start a new game…</div>`}
+    `;
+    if(role === "host"){
+      $("btnPlayAgain").addEventListener("click", hostPlayAgain);
+    }
+  }
+}
+
+function hasGuestIn(players){
+  return players.some(p=>p.id==="guest");
+}
+
+function waitingText(){
+  if(role === "host"){
+    if(!hasGuest()) return "Scoring will run once the timer ends.";
+    return opponentSubmittedThisRound ? "Everyone's in — scoring now…" : `Waiting for ${opponentName || "the other player"}…`;
+  } else {
+    return "Waiting for scoring — the host totals everyone's answers once time's up.";
+  }
+}
+</script>
+</body>
+</html>
