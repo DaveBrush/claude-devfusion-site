@@ -628,6 +628,12 @@ function hostNextRound(){
   renderGame();
 }
 
+function hostFinishGame(){
+  game.phase = "finished";
+  send({type:"game_over", scores: game.scores});
+  renderGame();
+}
+
 function hostPlayAgain(){
   game.players = buildPlayerList();
   game = {phase:"lobby", round:0, letter:null, players: game.players, scores: initScores(game.players), roundHistory:[]};
@@ -644,9 +650,11 @@ function startLocalCountdown(){
     updateTimerDisplay(left);
     if(left <= 0){
       stopLocalCountdown();
+      if(!mySubmitted) submitAnswers(true);
       if(role === "host"){
-        if(!mySubmitted) submitAnswers(true);
         maybeComputeResults(true);
+      } else {
+        renderGame();
       }
     }
   }, 300);
@@ -721,13 +729,8 @@ function maybeComputeResults(forced){
   });
   game.roundHistory.push({round: game.round, letter: game.letter, results});
 
-  if(game.round >= TOTAL_ROUNDS){
-    game.phase = "finished";
-    send({type:"game_over", scores: game.scores});
-  } else {
-    game.phase = "results";
-    send({type:"round_result", round: game.round, letter: game.letter, results, scores: game.scores});
-  }
+  game.phase = "results";
+  send({type:"round_result", round: game.round, letter: game.letter, results, scores: game.scores});
   stopLocalCountdown();
   renderGame();
 }
@@ -802,6 +805,7 @@ function renderGame(){
 
   else if(game.phase === "results"){
     const last = game.roundHistory[game.roundHistory.length-1];
+    const isFinalRound = last.round >= TOTAL_ROUNDS;
     c.innerHTML = `
       <div style="text-align:center;margin-bottom:4px;">
         <div style="font-size:12px;color:var(--muted);font-weight:700;">Round ${last.round} of ${TOTAL_ROUNDS} results — letter</div>
@@ -827,10 +831,16 @@ function renderGame(){
           <div class="s"><div class="n">${game.scores[p.id]}</div><div class="l">${p.name}${p.isBot?" 🤖":""} total</div></div>
         `).join("")}
       </div>
-      ${role === "host" ? `<button id="btnNextRound">Next round →</button>` : `<div class="status" style="margin-top:8px;">Waiting for the host to continue…</div>`}
+      ${role === "host"
+        ? (isFinalRound ? `<button id="btnSeeFinal">See final results →</button>` : `<button id="btnNextRound">Next round →</button>`)
+        : `<div class="status" style="margin-top:8px;">${isFinalRound ? "Waiting for the host to show the final results…" : "Waiting for the host to continue…"}</div>`}
     `;
     if(role === "host"){
-      $("btnNextRound").addEventListener("click", hostNextRound);
+      if(isFinalRound){
+        $("btnSeeFinal").addEventListener("click", hostFinishGame);
+      } else {
+        $("btnNextRound").addEventListener("click", hostNextRound);
+      }
     }
   }
 
