@@ -132,7 +132,11 @@
     display:flex; align-items:center; justify-content:center;
     font-weight:600; font-size:46px; color:#fff; box-shadow:0 8px 20px rgba(255,102,0,0.25);
   }
-  .row-between{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .row-between{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);
+    position:sticky; top:68px; z-index:20; background:var(--surface);
+  }
   .timer{font-size:20px; font-weight:600; font-variant-numeric:tabular-nums;}
   .timer.low{color:var(--bad);}
   .badges{display:flex; justify-content:space-around; flex-wrap:wrap; gap:10px; margin-bottom:14px;}
