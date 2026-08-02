@@ -227,7 +227,7 @@
       </div>
       <div class="divider">
         <div style="font-weight:600; margin-bottom:8px;">Host a game</div>
-        <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">Get a 6-digit code to share with the other player.</div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">Get a 6-digit code — everyone who wants to play types it in to join.</div>
         <button id="btnHost">Host game</button>
       </div>
       <div class="divider">
@@ -247,7 +247,7 @@
     <div class="panel">
       <div style="text-align:center; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; font-weight:600;">Room code</div>
       <div class="code-display" id="hostCodeDisplay">------</div>
-      <div class="status">Share this code with the other player — they type it in to join. You can also just start with computer players below.</div>
+      <div class="status">Share this code with everyone who wants to join — they type it in. You can add computer players too, or start once everyone's in.</div>
       <div class="spinner" id="hostSpinner"></div>
       <div id="hostStatus" class="status"></div>
       <div id="hostError" class="error"></div>
@@ -422,8 +422,16 @@ function botAnswer(letter, catKey){
   return bank[Math.floor(Math.random()*bank.length)];
 }
 
-let peer = null, conn = null, role = null; // role: 'host' | 'guest'
-let myName = "", opponentName = "";
+const MAX_GUESTS = 7;
+let peer = null, role = null; // role: 'host' | 'guest'
+let myId = null; // 'host' for the host, this client's PeerJS id for a guest
+let roomCode = "";
+let hostConnections = {}; // host only: { [guestId]: DataConnection }
+let connectedGuests = []; // host only: [{id, name}]
+let hostConn = null; // guest only: DataConnection to the host
+let guestJoinRejected = null; // guest only
+let guestDisconnected = false; // guest only
+let myName = "";
 let botsEnabled = { bot1:false, bot2:false }; // host-controlled
 let game = {
   phase: "lobby", round: 0, letter: null,
@@ -432,8 +440,7 @@ let game = {
 };
 let myAnswers = { names:"", animals:"", places:"", things:"" };
 let mySubmitted = false;
-let guestPendingSubmit = null;
-let opponentSubmittedThisRound = false;
+let submissions = {}; // host only, per round: { [playerId]: answers }
 let countdownInterval = null;
 let roundStartLocal = null;
 
@@ -447,10 +454,8 @@ function makeSixDigitCode(){
 }
 
 function buildPlayerList(){
-  const list = [{id:"host", name: role==="host"?myName:opponentName, isBot:false}];
-  if(opponentName || role==="guest"){
-    list.push({id:"guest", name: role==="guest"?myName:opponentName, isBot:false});
-  }
+  const list = [{id:"host", name: myName, isBot:false}];
+  connectedGuests.forEach(g=> list.push({id:g.id, name:g.name, isBot:false}));
   if(botsEnabled.bot1) list.push({id:"bot1", name: BOT_NAMES.bot1, isBot:true});
   if(botsEnabled.bot2) list.push({id:"bot2", name: BOT_NAMES.bot2, isBot:true});
   return list;
@@ -462,6 +467,7 @@ $("btnHost").addEventListener("click", ()=>{
   $("landingError").textContent = "";
   if(!myName){ $("landingError").textContent = "Enter your name first."; return; }
   role = "host";
+  myId = "host";
   show("screen-host-setup");
   startHost();
 });
@@ -484,14 +490,14 @@ function startHost(attempt){
   peer = new Peer(PEER_PREFIX + code);
 
   peer.on("open", ()=>{
+    roomCode = code;
     $("hostCodeDisplay").textContent = code;
     $("hostSpinner").style.display = "block";
-    $("hostStatus").textContent = "Waiting for the other player to join…";
+    $("hostStatus").textContent = "Waiting for players to join…";
   });
 
   peer.on("connection", (c)=>{
-    conn = c;
-    wireConn(conn);
+    wireHostConn(c);
   });
 
   peer.on("error", (err)=>{
@@ -505,16 +511,42 @@ function startHost(attempt){
   });
 }
 
+function wireHostConn(c){
+  c.on("open", ()=>{
+    show("screen-game");
+    if(!game.players.length) game.players = buildPlayerList();
+    renderGame();
+  });
+  c.on("data", (msg)=>{
+    handleHostMessage(msg, c);
+  });
+  c.on("close", ()=>{
+    delete hostConnections[c.peer];
+    const idx = connectedGuests.findIndex(g=>g.id===c.peer);
+    if(idx !== -1 && game.phase === "lobby"){
+      connectedGuests.splice(idx, 1);
+      game.players = buildPlayerList();
+      broadcast({type:"players_update", players: game.players});
+      renderGame();
+    }
+  });
+}
+
+function broadcast(obj){
+  Object.values(hostConnections).forEach(hc=>{ if(hc.open) hc.send(obj); });
+}
+
 // ---------------- Guest ----------------
 function startGuest(code){
   peer = new Peer();
 
-  peer.on("open", ()=>{
-    conn = peer.connect(PEER_PREFIX + code, { reliable: true });
-    wireConn(conn);
+  peer.on("open", (id)=>{
+    myId = id;
+    hostConn = peer.connect(PEER_PREFIX + code, { reliable: true });
+    wireGuestConn(hostConn);
 
     setTimeout(()=>{
-      if(!conn.open){
+      if(!hostConn.open){
         $("guestStatus").textContent = "Still trying…";
       }
     }, 6000);
@@ -525,79 +557,82 @@ function startGuest(code){
   });
 }
 
-// ---------------- shared connection wiring ----------------
-function wireConn(c){
+function wireGuestConn(c){
   c.on("open", ()=>{
     show("screen-game");
-    if(role === "guest"){
-      send({type:"join", name: myName});
-    } else {
-      game.players = buildPlayerList();
-    }
-    renderGame();
-  });
-  c.on("close", ()=>{
-    game.phase = "lobby";
+    c.send({type:"join", name: myName});
     renderGame();
   });
   c.on("data", (msg)=>{
-    handleMessage(msg);
+    handleGuestMessage(msg);
+  });
+  c.on("close", ()=>{
+    guestDisconnected = true;
+    renderGame();
   });
   c.on("error", ()=>{
-    if(role === "guest") $("guestError").textContent = "Connection lost.";
+    guestDisconnected = true;
+    renderGame();
   });
 }
 
-function send(obj){
-  if(conn && conn.open) conn.send(obj);
+function sendToHost(obj){
+  if(hostConn && hostConn.open) hostConn.send(obj);
 }
 
 // ---------------- message handling ----------------
-function handleMessage(msg){
-  if(role === "host"){
-    if(msg.type === "join"){
-      opponentName = msg.name;
-      game.players = buildPlayerList();
-      send({type:"welcome", hostName: myName, players: game.players});
-      renderGame();
-    } else if(msg.type === "submit" && msg.round === game.round){
-      guestPendingSubmit = msg.answers;
-      opponentSubmittedThisRound = true;
-      maybeComputeResults();
-      renderGame();
+function handleHostMessage(msg, c){
+  if(msg.type === "join"){
+    if(game.phase !== "lobby"){
+      c.send({type:"join_rejected", reason:"The game has already started."});
+      return;
     }
-  } else { // guest
-    if(msg.type === "welcome"){
-      opponentName = msg.hostName;
-      game.players = msg.players;
-      renderGame();
-    } else if(msg.type === "players_update"){
-      game.players = msg.players;
-      renderGame();
-    } else if(msg.type === "round_start"){
-      game.round = msg.round;
-      game.letter = msg.letter;
-      game.players = msg.players;
-      game.phase = "answering";
-      myAnswers = {names:"",animals:"",places:"",things:""};
-      mySubmitted = false;
-      startLocalCountdown();
-      renderGame();
-    } else if(msg.type === "round_result"){
-      game.roundHistory.push({round: msg.round, letter: msg.letter, results: msg.results});
-      game.scores = msg.scores;
-      game.phase = "results";
-      stopLocalCountdown();
-      renderGame();
-    } else if(msg.type === "game_over"){
-      game.scores = msg.scores;
-      game.phase = "finished";
-      renderGame();
-    } else if(msg.type === "game_reset"){
-      game = {phase:"lobby", round:0, letter:null, players: msg.players, scores:{}, roundHistory:[]};
-      mySubmitted = false;
-      renderGame();
+    if(connectedGuests.length >= MAX_GUESTS){
+      c.send({type:"join_rejected", reason:"This room is full."});
+      return;
     }
+    connectedGuests.push({id:c.peer, name: msg.name});
+    hostConnections[c.peer] = c;
+    game.players = buildPlayerList();
+    broadcast({type:"players_update", players: game.players});
+    renderGame();
+  } else if(msg.type === "submit" && msg.round === game.round){
+    submissions[c.peer] = msg.answers;
+    maybeComputeResults();
+    renderGame();
+  }
+}
+
+function handleGuestMessage(msg){
+  if(msg.type === "join_rejected"){
+    guestJoinRejected = msg.reason || "Couldn't join this room.";
+    renderGame();
+  } else if(msg.type === "players_update"){
+    game.players = msg.players;
+    renderGame();
+  } else if(msg.type === "round_start"){
+    game.round = msg.round;
+    game.letter = msg.letter;
+    game.players = msg.players;
+    game.phase = "answering";
+    myAnswers = {names:"",animals:"",places:"",things:""};
+    mySubmitted = false;
+    startLocalCountdown();
+    renderGame();
+  } else if(msg.type === "round_result"){
+    game.roundHistory.push({round: msg.round, letter: msg.letter, results: msg.results});
+    game.scores = msg.scores;
+    game.phase = "results";
+    stopLocalCountdown();
+    renderGame();
+  } else if(msg.type === "game_over"){
+    game.scores = msg.scores;
+    game.phase = "finished";
+    renderGame();
+  } else if(msg.type === "game_reset"){
+    game = {phase:"lobby", round:0, letter:null, players: msg.players, scores:{}, roundHistory:[]};
+    mySubmitted = false;
+    renderGame();
   }
 }
 
@@ -605,7 +640,7 @@ function handleMessage(msg){
 function toggleBot(botId){
   botsEnabled[botId] = !botsEnabled[botId];
   game.players = buildPlayerList();
-  send({type:"players_update", players: game.players});
+  broadcast({type:"players_update", players: game.players});
   renderGame();
 }
 
@@ -624,9 +659,8 @@ function hostStartGame(){
   game.phase = "answering";
   myAnswers = {names:"",animals:"",places:"",things:""};
   mySubmitted = false;
-  guestPendingSubmit = null;
-  opponentSubmittedThisRound = false;
-  send({type:"round_start", round: game.round, letter: game.letter, players: game.players});
+  submissions = {};
+  broadcast({type:"round_start", round: game.round, letter: game.letter, players: game.players});
   startLocalCountdown();
   renderGame();
 }
@@ -637,16 +671,15 @@ function hostNextRound(){
   game.phase = "answering";
   myAnswers = {names:"",animals:"",places:"",things:""};
   mySubmitted = false;
-  guestPendingSubmit = null;
-  opponentSubmittedThisRound = false;
-  send({type:"round_start", round: game.round, letter: game.letter, players: game.players});
+  submissions = {};
+  broadcast({type:"round_start", round: game.round, letter: game.letter, players: game.players});
   startLocalCountdown();
   renderGame();
 }
 
 function hostFinishGame(){
   game.phase = "finished";
-  send({type:"game_over", scores: game.scores});
+  broadcast({type:"game_over", scores: game.scores});
   renderGame();
 }
 
@@ -654,7 +687,8 @@ function hostPlayAgain(){
   game.players = buildPlayerList();
   game = {phase:"lobby", round:0, letter:null, players: game.players, scores: initScores(game.players), roundHistory:[]};
   mySubmitted = false;
-  send({type:"game_reset", players: game.players});
+  submissions = {};
+  broadcast({type:"game_reset", players: game.players});
   renderGame();
 }
 
@@ -690,31 +724,31 @@ function submitAnswers(forced){
   if(mySubmitted) return;
   mySubmitted = true;
   if(role === "guest"){
-    send({type:"submit", round: game.round, answers: myAnswers});
+    sendToHost({type:"submit", round: game.round, answers: myAnswers});
   } else {
+    submissions[myId] = myAnswers;
     maybeComputeResults();
   }
 }
 
-function hasGuest(){
-  return game.players.some(p=>p.id==="guest");
+function allSubmitted(){
+  return mySubmitted && connectedGuests.every(g=> submissions[g.id] !== undefined);
 }
 
 function maybeComputeResults(forced){
   if(role !== "host" || game.phase !== "answering") return;
   const timeUp = roundStartLocal && (Date.now()-roundStartLocal)/1000 >= ROUND_TIME;
-  const bothIn = mySubmitted && (!hasGuest() || opponentSubmittedThisRound);
-  if(!forced && !timeUp && !bothIn) return;
+  if(!forced && !timeUp && !allSubmitted()) return;
 
-  const answersById = {
-    host: myAnswers,
-    guest: guestPendingSubmit || {names:"",animals:"",places:"",things:""}
-  };
+  if(mySubmitted && !submissions[myId]) submissions[myId] = myAnswers;
+  connectedGuests.forEach(g=>{
+    if(submissions[g.id] === undefined) submissions[g.id] = {names:"",animals:"",places:"",things:""};
+  });
   CATEGORIES.forEach(cat=>{
     ["bot1","bot2"].forEach(botId=>{
-      if(!answersById[botId]) answersById[botId] = {names:"",animals:"",places:"",things:""};
-      if(game.players.some(p=>p.id===botId) && !answersById[botId][cat.key]){
-        answersById[botId][cat.key] = botAnswer(game.letter, cat.key);
+      if(!submissions[botId]) submissions[botId] = {names:"",animals:"",places:"",things:""};
+      if(game.players.some(p=>p.id===botId) && !submissions[botId][cat.key]){
+        submissions[botId][cat.key] = botAnswer(game.letter, cat.key);
       }
     });
   });
@@ -725,7 +759,7 @@ function maybeComputeResults(forced){
   CATEGORIES.forEach(cat=>{
     const norm = {};
     game.players.forEach(p=>{
-      const val = (answersById[p.id]?.[cat.key] || "").trim();
+      const val = (submissions[p.id]?.[cat.key] || "").trim();
       const valid = val.length>0 && val[0].toUpperCase() === game.letter;
       results[p.id].categories[cat.key] = {value: val, valid, unique:false, point:0};
       if(valid){ const k = val.toLowerCase(); norm[k] = (norm[k]||0)+1; }
@@ -746,7 +780,7 @@ function maybeComputeResults(forced){
   game.roundHistory.push({round: game.round, letter: game.letter, results});
 
   game.phase = "results";
-  send({type:"round_result", round: game.round, letter: game.letter, results, scores: game.scores});
+  broadcast({type:"round_result", round: game.round, letter: game.letter, results, scores: game.scores});
   stopLocalCountdown();
   renderGame();
 }
@@ -755,18 +789,42 @@ function maybeComputeResults(forced){
 function renderGame(){
   const c = $("gameContent");
 
-  if(game.phase === "lobby"){
-    const players = game.players.length ? game.players : buildPlayerList();
+  if(role === "guest" && guestJoinRejected){
     c.innerHTML = `
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-weight:600;margin-bottom:6px;">Couldn't join</div>
+        <div class="status">${guestJoinRejected}</div>
+      </div>
+    `;
+    return;
+  }
+  if(role === "guest" && guestDisconnected){
+    c.innerHTML = `
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-weight:600;margin-bottom:6px;">Connection to the host was lost</div>
+        <div class="status">Ask the host for a fresh room code and rejoin.</div>
+      </div>
+    `;
+    return;
+  }
+
+  if(game.phase === "lobby"){
+    const players = game.players.length ? game.players : (role === "host" ? buildPlayerList() : []);
+    c.innerHTML = `
+      ${role === "host" ? `
+        <div style="text-align:center; margin-bottom:16px;">
+          <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; font-weight:600;">Room code — share it so more people can join</div>
+          <div class="code-display" style="font-size:32px;">${roomCode}</div>
+        </div>
+      ` : ``}
       <div class="badges">
         ${players.map(p=>`
           <div class="badge">
             <div class="circle ${p.isBot?"bot":""}">${p.name ? p.name.charAt(0).toUpperCase() : "?"}</div>
-            <div class="lbl">${p.id==="host"?"Host":p.id==="guest"?"Player 2":"Computer"}</div>
+            <div class="lbl">${p.id==="host"?"Host":p.isBot?"Computer":"Player"}</div>
             <div class="nm">${p.name}</div>
           </div>
         `).join("")}
-        ${!hasGuestIn(players) ? `<div class="badge"><div class="circle empty">?</div><div class="lbl">Player 2</div><div class="nm">waiting…</div></div>` : ""}
       </div>
       ${role === "host" ? `
         <div class="bot-toggles">
@@ -829,7 +887,7 @@ function renderGame(){
       </div>
       ${game.players.map(p=>{
         const r = last.results[p.id];
-        const isMe = role === p.id;
+        const isMe = myId === p.id;
         return `
           <div class="player-card">
             <div class="head"><span class="pn">${r.name}${isMe?" (you)":""}${p.isBot?" 🤖":""}</span><span class="pts">+${r.points} this round</span></div>
@@ -871,7 +929,7 @@ function renderGame(){
       </div>
       ${ranked.map((p,i)=>`
         <div class="final-row ${i===0 && !tie ? "win":""}">
-          <span class="p">${i+1}. ${p.name}${p.isBot?" 🤖":""}${role===p.id?" (you)":""}</span>
+          <span class="p">${i+1}. ${p.name}${p.isBot?" 🤖":""}${myId===p.id?" (you)":""}</span>
           <span class="s">${game.scores[p.id]}</span>
         </div>
       `).join("")}
@@ -883,14 +941,12 @@ function renderGame(){
   }
 }
 
-function hasGuestIn(players){
-  return players.some(p=>p.id==="guest");
-}
-
 function waitingText(){
   if(role === "host"){
-    if(!hasGuest()) return "Scoring will run once the timer ends.";
-    return opponentSubmittedThisRound ? "Everyone's in — scoring now…" : `Waiting for ${opponentName || "the other player"}…`;
+    if(!connectedGuests.length) return "Scoring will run once the timer ends.";
+    const pending = connectedGuests.filter(g=> submissions[g.id] === undefined).map(g=>g.name);
+    if(!pending.length) return "Everyone's in — scoring now…";
+    return `Waiting for ${pending.join(", ")}…`;
   } else {
     return "Waiting for scoring — the host totals everyone's answers once time's up.";
   }
