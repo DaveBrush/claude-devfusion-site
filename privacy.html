@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy – Devfusion</title>
+<link rel="icon" type="image/png" href="favicon.png" />
+<style>
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('fonts/inter-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('fonts/inter-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0f1117;
+    --ink-mid: #3a3d47;
+    --ink-muted: #7a7f8e;
+    --surface: #fff;
+    --surface-2: #f8f8f7;
+    --surface-dark: #0f1117;
+    --accent: #ff6600;
+    --accent-hover: #e55a00;
+    --accent-light: #fff3eb;
+    --border: #e8e8e6;
+    --radius: 6px;
+    --radius-lg: 10px;
+    --max: 1120px;
+    --font: 'Inter', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); color: var(--ink); background: var(--surface); font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+  }
+  .nav-inner {
+    max-width: var(--max); margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 68px;
+  }
+  .nav-logo { text-decoration: none; display: flex; align-items: center; }
+  .nav-logo img { height: 36px; width: auto; display: block; }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--ink-mid); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.15s; }
+  .nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--ink); }
+  .nav-links a[aria-current="page"] { color: var(--accent); }
+  .nav-cta {
+    background: var(--accent); color: #fff;
+    padding: 9px 22px; border-radius: var(--radius);
+    font-size: 14px; font-weight: 500; text-decoration: none;
+    transition: background 0.15s;
+  }
+  .nav-cta:hover { background: var(--accent-hover); }
+  .nav-end { display: flex; align-items: center; gap: 2rem; }
+  .nav-burger {
+    display: none; flex-direction: column; justify-content: center; gap: 5px;
+    background: none; border: none; cursor: pointer; padding: 6px; margin: -6px;
+  }
+  .nav-burger span {
+    display: block; width: 22px; height: 2px;
+    background: var(--ink); border-radius: 2px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    transform-origin: center;
+  }
+  nav.menu-open .nav-burger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  nav.menu-open .nav-burger span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  nav.menu-open .nav-burger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    padding: 5rem 2rem 4rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-header-inner { max-width: var(--max); margin: 0 auto; }
+  .page-label {
+    display: inline-block; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1rem;
+  }
+  .page-header h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 600; line-height: 1.1; letter-spacing: -0.03em;
+    color: var(--ink); margin-bottom: 1rem;
+  }
+  .page-header p {
+    font-size: 1.0625rem; color: var(--ink-mid); font-weight: 300;
+    max-width: 540px; line-height: 1.75;
+  }
+  .page-header .updated {
+    display: inline-block; margin-top: 1.25rem; font-size: 13px;
+    color: var(--ink-muted); background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 5px 14px;
+  }
+
+  /* ── LEGAL CONTENT ── */
+  .legal-section { padding: 4rem 2rem 6rem; }
+  .legal-inner { max-width: 760px; margin: 0 auto; }
+  .legal-inner h2 {
+    font-size: 1.375rem; font-weight: 600; letter-spacing: -0.01em;
+    color: var(--ink); margin: 2.5rem 0 1rem;
+  }
+  .legal-inner h2:first-child { margin-top: 0; }
+  .legal-inner p {
+    font-size: 1rem; color: var(--ink-mid); font-weight: 300;
+    line-height: 1.8; margin-bottom: 1.25rem;
+  }
+  .legal-inner ul { margin: 0 0 1.25rem 1.25rem; }
+  .legal-inner li {
+    font-size: 1rem; color: var(--ink-mid); font-weight: 300;
+    line-height: 1.8; margin-bottom: 0.5rem;
+  }
+  .legal-inner li strong { color: var(--ink); font-weight: 600; }
+  .legal-inner a { color: var(--accent); text-decoration: none; }
+  .legal-inner a:hover { text-decoration: underline; }
+  .legal-inner address { font-style: normal; }
+  .legal-inner .summary-box {
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1.5rem 1.75rem;
+    margin-bottom: 2.5rem;
+  }
+  .legal-inner .summary-box p { margin-bottom: 0; }
+  .legal-inner .summary-box p + p { margin-top: 0.9rem; }
+
+  /* ── FOOTER ── */
+  footer { background: #080a10; color: rgba(255,255,255,0.3); padding: 2rem; text-align: center; font-size: 13px; }
+  footer a { color: rgba(255,255,255,0.45); text-decoration: none; }
+  footer a:hover { color: rgba(255,255,255,0.7); }
+
+  /* ── SCROLL ANIMATIONS ── */
+  .fade-up { opacity: 0; transform: translateY(28px); transition: opacity 0.65s ease, transform 0.65s ease; }
+  .fade-up.is-visible { opacity: 1; transform: none; }
+  .fade-up.delay-1 { transition-delay: 0.1s; }
+  .fade-up.delay-2 { transition-delay: 0.2s; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .page-header { padding: 3.5rem 1.25rem 3rem; }
+    .legal-section { padding: 3rem 1.25rem 4rem; }
+    .nav-burger { display: flex; }
+    .nav-end {
+      display: none; position: absolute; top: 68px; left: 0; right: 0;
+      flex-direction: column; align-items: stretch; gap: 0;
+      background: rgba(255,255,255,0.97); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border); box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+      padding: 0.75rem 1.5rem 1.25rem; z-index: 99;
+    }
+    nav.menu-open .nav-end { display: flex; }
+    .nav-links { flex-direction: column; gap: 0; width: 100%; }
+    .nav-links li { border-bottom: 1px solid var(--border); }
+    .nav-links li:last-child { border-bottom: none; }
+    .nav-links a { display: block; padding: 0.875rem 0; font-size: 15px; }
+    .nav-cta { display: block; text-align: center; margin-top: 0.75rem; padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="index.html"><img src="df_logo.png" alt="Devfusion" /></a>
+    <div class="nav-end">
+      <ul class="nav-links">
+        <li><a href="index.html#services">Services</a></li>
+        <li><a href="index.html#expertise">Expertise</a></li>
+        <li><a href="index.html#projects">Projects</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="index.html#about">About</a></li>
+      </ul>
+      <a class="nav-cta" href="index.html#contact">Get in touch</a>
+    </div>
+    <button class="nav-burger" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div class="page-header-inner">
+    <div class="page-label fade-up">Legal</div>
+    <h1 class="fade-up delay-1">Privacy Policy</h1>
+    <p class="fade-up delay-2">For our Comedy Festival apps — Mach Comedy Festival and Aber Comedy Festival.</p>
+    <span class="updated fade-up delay-2">Last updated 20 July 2026</span>
+  </div>
+</header>
+
+<!-- LEGAL CONTENT -->
+<section class="legal-section">
+  <div class="legal-inner">
+
+    <div class="summary-box fade-up">
+      <p>Browsing the festival programme, favouriting shows and marking tickets as bought all work without an account, and that information stays on your device. The only feature that shares any data off your device is the optional <strong>Group Planning</strong> tool, and even then it's limited to a nickname and your show selections, visible only to people you share your room code with.</p>
+      <p>The sections below cover exactly what each part of the app does, in plain terms.</p>
+    </div>
+
+    <h2 class="fade-up">Show and festival information</h2>
+    <p class="fade-up">The festival programme, venue details and festival info pages are downloaded from our own file storage and cached on your device so the app still works with no signal. These are one-way, public data requests — nothing about you or your device is attached beyond what any web request sends automatically.</p>
+
+    <h2 class="fade-up">Favourites and tickets bought</h2>
+    <p class="fade-up">Your favourited shows and any shows you've marked as tickets bought are saved locally on your device only. We never see this information and it isn't sent anywhere, unless you turn on Group Planning (below).</p>
+
+    <h2 class="fade-up">Group Planning</h2>
+    <p class="fade-up">Group Planning is an optional feature for seeing what your friends are going to. If you create or join a group using a 6-character room code, the following is stored in Google's Firebase (Cloud Firestore) service so it can sync in real time between everyone in that room:</p>
+    <ul class="fade-up">
+      <li><strong>A random device ID</strong> — generated on your phone, not linked to your name, email or any account.</li>
+      <li><strong>The display name you type in</strong> — this is whatever you choose to enter; it doesn't have to be your real name.</li>
+      <li><strong>Your favourited and bought shows</strong> — the same list already stored on your device.</li>
+    </ul>
+    <p class="fade-up">This information is visible to anyone with your room's code, for as long as that room exists. Leaving a group removes your entry from it. If you'd like a room's data removed entirely, contact us below and we'll delete it. Because this data is hosted on Google's infrastructure, Google's own privacy policy also applies: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a>.</p>
+
+    <h2 class="fade-up">Location</h2>
+    <p class="fade-up">The venue map can show your current position as a blue dot, to help you find your way around. This uses your device's GPS and is processed entirely on your phone to draw the map — we never receive, transmit or store your location. You'll be asked to allow this the first time, and you can decline without losing any other feature.</p>
+
+    <h2 class="fade-up">Maps</h2>
+    <p class="fade-up">Venue maps are drawn using OpenStreetMap, a free, open map service — not Google Maps. Loading a map means your device requests tiles directly from OpenStreetMap's servers, which, like any web request, will see your IP address. That's between you and them; see their policy at <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">osmfoundation.org/wiki/Privacy_Policy</a>.</p>
+
+    <h2 class="fade-up">External links</h2>
+    <p class="fade-up">Buy Tickets links, and links out to performers' and venues' own websites and social media, take you outside the app to third-party sites. Those operate under their own privacy policies, outside our control.</p>
+
+    <h2 class="fade-up">Cookies on this website</h2>
+    <p class="fade-up">This website (devfusion.net, not the apps themselves) uses cookies from Google to deliver services and analyse traffic, with some information shared with Google in the process. Continued use of the site constitutes acceptance of this cookie policy.</p>
+
+    <h2 class="fade-up">Your choices</h2>
+    <p class="fade-up">You can clear favourites and bought tickets at any time from within the app. You can leave a Group Planning room at any time, which removes your entry from it. To have a group's stored data deleted outright, or to ask any other question about how your data is handled, get in touch below.</p>
+
+    <h2 class="fade-up">Contact</h2>
+    <p class="fade-up">Got a privacy question before you install? Get in touch at <a href="mailto:privacy@devfusion.net">privacy@devfusion.net</a>.</p>
+    <p class="fade-up">
+      <address>
+        Devfusion Ltd<br>
+        The Code Hub, Haddonsacre, Station Road, Offenham. WR11 8JJ<br>
+        <a href="mailto:enquiries@devfusion.net">enquiries@devfusion.net</a> · 07866 733164
+      </address>
+    </p>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>&copy; 2025 Devfusion Ltd · The Code Hub, Offenham, Worcestershire · <a href="mailto:enquiries@devfusion.net">enquiries@devfusion.net</a></p>
+</footer>
+
+<script>
+  const burger = document.querySelector('.nav-burger');
+  const navEl = document.querySelector('nav');
+  burger.addEventListener('click', function() {
+    const open = navEl.classList.toggle('menu-open');
+    burger.setAttribute('aria-expanded', String(open));
+  });
+  document.querySelectorAll('.nav-links a').forEach(function(link) {
+    link.addEventListener('click', function() {
+      navEl.classList.remove('menu-open');
+      burger.setAttribute('aria-expanded', 'false');
+    });
+  });
+  document.addEventListener('click', function(e) {
+    if (!navEl.contains(e.target)) {
+      navEl.classList.remove('menu-open');
+      burger.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-up').forEach(function(el) {
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
