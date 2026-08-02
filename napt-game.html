@@ -462,10 +462,21 @@ function buildPlayerList(){
 }
 
 // ---------------- Landing ----------------
+const NAME_STORAGE_KEY = "napt-game-name";
+function rememberName(name){
+  try{ localStorage.setItem(NAME_STORAGE_KEY, name); }catch(e){}
+}
+try{
+  const savedName = localStorage.getItem(NAME_STORAGE_KEY);
+  if(savedName) $("nameInput").value = savedName;
+}catch(e){}
+$("nameInput").addEventListener("input", (e)=> rememberName(e.target.value.trim()));
+
 $("btnHost").addEventListener("click", ()=>{
   myName = $("nameInput").value.trim();
   $("landingError").textContent = "";
   if(!myName){ $("landingError").textContent = "Enter your name first."; return; }
+  rememberName(myName);
   role = "host";
   myId = "host";
   show("screen-host-setup");
@@ -478,6 +489,7 @@ $("btnJoin").addEventListener("click", ()=>{
   $("landingError").textContent = "";
   if(!myName){ $("landingError").textContent = "Enter your name first."; return; }
   if(!/^\d{6}$/.test(code)){ $("landingError").textContent = "Enter the 6-digit room code."; return; }
+  rememberName(myName);
   role = "guest";
   show("screen-guest-setup");
   startGuest(code);
