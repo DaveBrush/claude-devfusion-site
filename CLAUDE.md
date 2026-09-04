@@ -15,6 +15,7 @@ A static website for Devfusion, a software consultancy based in Offenham, Worces
 - `index.html` — main marketing site, single scroll page
 - `tools.html` — developer tools directory page
 - `cribbage.html` — self-contained two-player cribbage game (P2P via PeerJS/WebRTC); no server required, share a room code between two devices to play
+- `napt-game.html` — self-contained two-player Name/Animal/Place/Thing game (P2P via PeerJS/WebRTC); no server required, share a room code between two devices to play
 - `aber-app-whats-new.html` — standalone client landing page (Aberystwyth Comedy Festival app "what's new") — see Client project pages below
 - `aber-app-whats-new/images/` — self-hosted screenshots for the above page
 - `df_logo.png` — logo (always use this)
